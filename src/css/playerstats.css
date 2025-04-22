@@ -1,0 +1,99 @@
+.loader {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -65%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+.loader:after { 
+    content: " ";
+    width: 45px;
+    height: 45px;
+    margin-top: 200px;
+    border-radius: 50%;
+    border: 6px solid var(--color-green);
+    border-color: var(--color-green) transparent var(--color-green) transparent;
+    animation: ring 1.2s linear infinite; 
+}
+
+@keyframes ring { 
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+/* Player Name */
+.player-name {
+    font-size: 22px; color: white;
+    margin-top: 10px;
+}
+.plr-image {
+    width: 70px;
+    height: 70px;
+    border-radius: 10px;
+    object-fit: cover;
+  }
+/* Style for the main container */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 16px;
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    width: fit-content 100%;
+}
+
+/* Style for each item */
+.info-item {
+    display: flex;
+    flex-direction: column;
+    background-color: #5a5a5a;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* Title text */
+.info-title {
+    font-size: 14px;
+    color: #aaaaaa; /* Grey text */
+}
+
+/* Value text */
+.info-value {
+    font-size: 16px; padding: 4px;
+    font-weight: bold; 
+    color: white;
+}
+.transfer-grid{
+    display: flex; gap:10px;
+    flex-direction: column;
+    background-color: #1e1e1e;
+    padding: 20px;
+    color: white; /* Text color */
+    width: fit-content 100%;
+}
+.transfer-teams {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+}
+
+.team {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.team-logo {
+    width: 40px;
+    height: 40px;
+}
+.c-flag{
+    height: 25px;
+    object-fit: inherit;
+}

@@ -1,0 +1,111 @@
+/* Teams.css */
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+.header {
+    background-color: #000000a3;
+    color: #fff;
+    padding: 10px; margin-top: 0px;
+    text-align: center;
+}
+
+.search{
+    width: 50%; border-radius: 20px;
+    height: 40px; font-size: larger;
+    margin-left: 20px; padding-left: 10px;
+}
+ .sbtn{
+    background-color: #00a075;
+    color: #fff; margin: 15px 0px 0px 20px;
+    font-size:14px; text-transform: uppercase;
+    padding: 12px 14px; border-radius: 15px;
+    transition: ease-in-out 0.3s;
+ }
+ .sbtn:hover{
+    background-color: #01d0996b;
+    color: #fff;
+    font-size:14px; text-transform: uppercase;
+    padding: 12px 14px; border-radius: 15px;
+}
+.teams-list-table {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
+}
+
+.team-row {
+  display: grid;
+  grid-template-columns: 60px 350px 400px 70px 10px; /* Adjust to your liking */
+  align-items: center;
+  gap: 10px;
+  padding: 12px; 
+  background-color: #1e1e1e;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  color: white;
+  transition: background-color 0.3s ease, box-shadow 0.3s;
+}
+
+.team-row:hover {
+  background-color: #122a3d;
+  transform: translateY(-5px);
+  transform: translateX(-5px);
+}
+
+.team-logo {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+.league-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.country-flag {
+  width: 30px;
+  height: 20px;
+  object-fit: cover;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.team-name,
+.team-league,
+.team-country {
+  font-family: Verdana, sans-serif;
+  font-size: 16px; 
+  white-space: nowrap;
+}
+
+  .loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 20px; /* Centers the loader vertically */
+  }
+  
+  .loader:after { 
+    content: " ";
+    width: 45px;
+    height: 45px;
+    margin: 0 auto;
+    margin-top: 175px;
+    border-radius: 50%;
+    border: 6px solid var(--color-green);
+    border-color: var(--color-green) transparent var(--color-green) transparent;
+    animation: ring 1.2s linear infinite; 
+  }
+  
+  @keyframes ring { 
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  

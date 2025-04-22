@@ -1,0 +1,138 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+  }
+
+.buttn{
+  text-decoration: none;
+  border: none;
+  background-color: inherit ;
+  color:white; font-size: 18px ;
+  vertical-align: middle; 
+}
+.buttn:hover{
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 20px;
+}
+/* Header Styling */
+#h {
+    height: 40px;
+    background-color: black;
+    position: sticky; top: 0px; z-index: 10;
+    color: white;
+    border-bottom: 2px solid #5aa577;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    width: 100% fit-content;
+  }
+  
+  /* Navigation Menu */
+  #h ul {
+    list-style: none; align-items: center;
+    display: flex;
+    gap: 30px; /* Space between items */
+    margin-right: 30px;
+  }
+  
+  /* Navigation Links */
+  #h ul li {
+    display: inline;
+  }
+  
+  #h ul li a {
+    text-decoration: none;
+    color: white;
+    font-size:18px;
+    transition: color 0.3s ease-in-out, transform 0.2s ease-in-out;
+  }
+  
+  /* Hover Effect */
+  #h ul li a:hover {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 20px;
+  }
+
+  .arrow {
+    margin-left: 10px;
+    transition: transform 0.3s ease;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    display: inline-flex;
+    padding: 3px;;
+  }
+  
+  /* Downward Arrow (default) */
+  .arrow.down {
+    transform: rotate(45deg); margin-bottom: 4px;
+    -webkit-transform: rotate(45deg);
+  }
+  
+  /* Upward Arrow */
+  .arrow.up {
+    transform: rotate(-135deg);
+    -webkit-transform: rotate(-135deg);
+  }   
+  
+/* Dropdown Menu (Wider Layout) */
+.dropdown-menu {
+  position: absolute;
+  z-index: 3;
+  top: 100%;
+  left: 4% ;display: flex;
+  border-top: 2px solid #5aa577;
+  border-radius: 5px; justify-content: space-between;
+  padding: 15px; width: 90%; box-shadow: black 0px 0px 20px 0px;
+  background: linear-gradient(-45deg, #121212, #1e1e1e, #1e1e1e, #121212);
+  animation: gradient 15s ease infinite;
+}
+@keyframes gradient {
+  0% {
+      background-position: 0% 50%;
+  }
+
+  50% {
+      background-position: 100% 50%;
+  }
+
+  100% {
+      background-position: 0% 50%;
+  }
+}
+
+/* Each category will be a column */
+.dropdown-category {
+  width: 30%; /* Adjust to ensure 2 columns */
+  margin-bottom: 10px;
+}
+
+/* Category Title */
+.dropdown-category strong {
+  display: block;
+  padding: 12px 26px;
+  font-size: 16px; text-transform: uppercase;
+  background: #020c0e;
+  border-radius: 10px;
+}
+
+/* League List Items */
+.dropdown-item {
+  display: flex;
+  align-items: center; 
+  padding: 8px;
+}
+
+.dropdown-item:hover {
+  background: rgba(86, 155, 187, 0.2);
+  border-radius: 10px;
+}
+
+/* League Logos */
+.league-logo {
+  height: auto;
+  width: 35px; padding: 1px;
+  margin-right: 10px;
+  border-radius: 3px;
+  background-color: white;
+}

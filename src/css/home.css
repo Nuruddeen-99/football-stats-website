@@ -1,0 +1,136 @@
+.con{
+  display: flex;
+  gap: 14px;
+  justify-content: space-evenly;
+}
+.c1 {
+  min-width: 250px;
+  margin-left: 18px;
+  height: 150px;
+  background-color: #1e1e1e;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 10px; 
+}
+.c1 input {
+  width: 98%; 
+  padding: 8px; margin-top: 8px; margin-bottom: 8px;
+  border-radius: 6px;
+  font-family: 'Segoe UI'; font-size: 16px;
+  border: none;
+}
+.c1 button {
+  width: 40%;
+  padding: 8px 15px;
+  border-radius: 6px;
+  border: 2px 2px solid #aaa;
+  background-color: #fff;
+  cursor: pointer; transition: ease-in-out 0.3s;
+} 
+.c1 button:hover {
+  background-color: #123755;
+  color: white;
+}
+
+.c2 {
+    padding: 20px;
+    display: grid;
+    width: 1030px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    background-color: #121212;
+  }
+  
+  .news-item {
+    background-color: #1e1e1e;
+    border-radius: 12px;
+    overflow: hidden;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease;
+  }
+  
+  .news-item:hover {
+    transform: translateY(-5px);
+  }
+  
+  .news-img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+  
+  .news-content {
+    padding: 15px;
+    display: flex;
+    flex-direction: column; flex-grow: 1;
+    gap: 10px;
+  }
+  
+  .news-category {
+    font-size: 10px;
+    color: #ccc;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .news-content h3 {
+    font-size: 16px;
+  }
+  
+  .news-footer {
+    display: flex; margin-top: auto;
+    justify-content: space-between;
+    align-items: center; padding-top: 15px;
+    font-size: 12px;
+    color: #aaa; 
+  }
+  
+  .news-footer i {
+    margin-right: 5px;
+  }
+  .rm{
+    color:white; font-size: small;
+}
+.load-more-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #1e1e1e;
+    color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .load-more-card:hover {
+    background-color: #333;
+  }
+  
+  .plus-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #fff;
+    color: #1e1e1e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .load-more-card p {
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  

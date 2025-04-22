@@ -1,0 +1,31 @@
+.loader {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -65%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.vti{
+  cursor: pointer; border: 0.5px lightgray solid; 
+  padding: 10px; color:white; border-radius: 14px;
+  background-color: #121212; font-size: 14px;
+} .vti:hover{ background-color: #002b41;}
+.mg{padding: 5px; background-color: white; border-radius: 6px; width: 50px;} 
+
+  .loader:after { 
+    content: " ";
+    width: 45px;
+    height: 45px;
+    margin-top: 200px;
+    border-radius: 50%;
+    border: 6px solid var(--color-green);
+    border-color: var(--color-green) transparent var(--color-green) transparent;
+    animation: ring 1.2s linear infinite; 
+  }
+  
+  @keyframes ring { 
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }

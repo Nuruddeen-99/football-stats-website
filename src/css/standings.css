@@ -1,0 +1,57 @@
+.container {
+    display: flex; 
+    gap: 25px; 
+}
+    .title {
+            padding: 10px;
+            text-align: center;
+            font-size: 16px; text-transform: uppercase;
+            font-weight: bold;
+            background-color: #01d099;
+        }
+    .vertical-gridbox {
+        display: grid; overflow: hidden;
+        flex-direction: column;
+        width: 150px; height: 290px;
+        color: white; margin-left: 16px;
+        border-radius: 10px; margin-top: 40px;
+        box-shadow: 0px 0px 2px 0px #46454b;
+        font-family: Arial, sans-serif;
+    }
+
+    .grid-item {
+        padding: 15px; font-size: 15px;
+        background-color: #121212;
+        border-bottom: 0.3px solid #46454b;
+        cursor: pointer;
+        box-shadow: 0px 0px 10px 0px #000000;
+        transition: background-color 0.3s, box-shadow 0.3s;
+    }
+    .active {
+        background-color: #014364;
+    }
+    .grid-item:hover {
+        background-color: #002b41;
+    }
+    .grid-item:last-child {
+        border-radius: 0px 0px 10px 10px;
+    }
+    .gcontent{
+        width: 85%;
+        background-color: #1e1e1e;
+        height: 600px; border-radius: 15px;
+    }
+    .limg{
+        width: 60px; margin-left: 20px;
+        height: auto; border-radius: 15px;
+        background-color: white; padding: 10px;
+        vertical-align: middle;
+    }
+    .hd{
+        font-weight: 600;
+        font-size: 16px;
+        padding: 0.8rem;
+        color: white;
+        vertical-align: middle;
+        text-transform: uppercase; 
+    }
