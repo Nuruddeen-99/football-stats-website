@@ -79,7 +79,7 @@ function Standings() {
             Standings
           </div>
           <div className="grid-item" onClick={() => navigate(`/standings/${id}/${newSeason || season}/goals`)}>
-            Top scorers
+            Goals
           </div>
           <div className="grid-item" onClick={() => navigate(`/standings/${id}/${newSeason || season}/assists`)}>
             Assists
