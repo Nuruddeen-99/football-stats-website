@@ -9,7 +9,7 @@ function Teamstats() {
     const { leagueid, newSeason, teamId } = useParams();  // Extract URL parameters
     const navigate = useNavigate();
     
-    const [season, setSeason] = useState("2023");  // Default season
+    const [season, setSeason] = useState("2024");  // Default season
     const [stats, setStats] = useState(null);  // Store API response
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -79,6 +79,7 @@ function Teamstats() {
             <div className="sl" style={{ position: 'absolute', top: '80px', right: '160px', zIndex: '1' }}>
                 <label htmlFor="season-select">Season:</label>
                 <select id="season-select" value={season} onChange={handleSeasonChange}>
+                    <option value="2024">2024</option>
                     <option value="2023">2023</option>
                     <option value="2022">2022</option>
                     <option value="2021">2021</option>

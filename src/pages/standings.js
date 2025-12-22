@@ -8,7 +8,7 @@ function Standings() {
   const apiKey = process.env.REACT_APP_API_KEY;
   const { id, newSeason } = useParams(); // Get the ID and newSeason from the URL
   const navigate = useNavigate();
-  const [season, setSeason] = useState('2023'); // Set default season
+  const [season, setSeason] = useState('2024'); // Set default season
   const cacheKey = `standingsWidget-${id}-${newSeason || season}`;
   // eslint-disable-next-line
   const [isCached, setIsCached] = useState(false);
@@ -66,6 +66,7 @@ function Standings() {
         value={season}
         onChange={handleSeasonChange}  // Handle season change directly
       >
+        <option value="2024">2024</option>
         <option value="2023">2023</option>
         <option value="2022">2022</option>
         <option value="2021">2021</option>

@@ -7,7 +7,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 function YellowCards() {
   const apiKey = process.env.REACT_APP_API_KEY;
   const { id, newSeason } = useParams(); // Get league ID and season from URL
-  const [season, setSeason] = useState('2023'); // Set default season
+  const [season, setSeason] = useState('2024'); // Set default season
   const [topYellows, setTopYellows] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);

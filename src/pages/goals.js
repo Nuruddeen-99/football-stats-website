@@ -7,7 +7,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 function Goals() {
   const apiKey = process.env.REACT_APP_API_KEY;
   const { id, newSeason } = useParams(); // Get league ID and season from URL
-  const [season, setSeason] = useState('2023'); // Set default season
+  const [season, setSeason] = useState('2024'); // Set default season
   const [topScorers, setTopScorers] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -79,6 +79,7 @@ function Goals() {
           value={season}
           onChange={handleSeasonChange}
         >
+          <option value="2024">2024</option>
           <option value="2023">2023</option>
           <option value="2022">2022</option>
           <option value="2021">2021</option>

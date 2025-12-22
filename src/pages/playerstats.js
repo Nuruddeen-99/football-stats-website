@@ -7,7 +7,7 @@ const PlayerStats = () => {
     const apiKey = process.env.REACT_APP_API_KEY;
     const { playerId, newSeason } = useParams();
     const navigate = useNavigate();
-    const [season, setSeason] = useState("2023");
+    const [season, setSeason] = useState("2024");
     const [playerData, setPlayerData] = useState(null);
     const [playerInfo, setPlayerinfo] = useState(null);
     const [currentTeam, setCurrentTeam] = useState(null);
@@ -323,6 +323,7 @@ if (cachedData) {
                         <div className="sl" style={{ position: 'absolute', marginTop: "16px", right: '160px', zIndex: '1' }}>
                             <label htmlFor="season-select">Season:</label>
                             <select id="season-select" value={selectedSeason} onChange={handleSeasonChange}>
+                                <option value="2024">2024</option>
                                 <option value="2023">2023</option>
                                 <option value="2022">2022</option>
                                 <option value="2021">2021</option>
