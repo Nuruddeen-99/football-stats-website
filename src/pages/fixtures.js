@@ -1,27 +1,22 @@
-import React from "react";
 import Header from "../components/header";
-import '../css/api-football.css';
 
 function Fixtures() {
   const apiKey = process.env.REACT_APP_API_KEY;
   return <>
 <Header/>
-  <div id="wg-api-football-games"
-     data-host="v3.football.api-sports.io"
-     data-key={apiKey}
-     data-date=""
-     data-league=""
-     data-season=""
-     data-theme="false"
-     data-refresh="15"
-     data-show-toolbar="true"
-     data-show-errors="false"
-     data-show-logos="false"
-     data-modal-game="true"
-     data-modal-standings="true"
-     data-modal-show-logos="true">
-</div>
-
+<api-sports-widget data-type="config"
+  data-key={apiKey}
+  data-sport="football"
+  data-lang="en"
+  data-theme="dark"
+  data-show-logos="true"
+  data-show-errors="true"
+  data-target-game="modal"
+  data-target-team="modal"
+  data-target-player="modal"
+  data-target-league="modal"
+></api-sports-widget>
+<api-sports-widget data-type="games" id="wg-api-football-games"></api-sports-widget>
   </>;
 }
 export default Fixtures;

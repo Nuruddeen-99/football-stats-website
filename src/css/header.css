@@ -1,23 +1,18 @@
-body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-  }
 
 .buttn{
-  text-decoration: none;
+  text-decoration: none; font-family: "Poppins", sans-serif;
   border: none;
   background-color: inherit ;
-  color:white; font-size: 18px ;
+  color:white; font-size: 16px ;
   vertical-align: middle; 
 }
 .buttn:hover{
   color: rgba(255, 255, 255, 0.8);
-  font-size: 20px;
+  font-size: 18px;
 }
 /* Header Styling */
 #h {
-    height: 40px;
+    height: 40px; border-radius: 0px 0px 15px 15px;
     background-color: black;
     position: sticky; top: 0px; z-index: 10;
     color: white;
@@ -42,9 +37,9 @@ body {
   }
   
   #h ul li a {
-    text-decoration: none;
+    text-decoration: none;  font-family: "Poppins", sans-serif;
     color: white;
-    font-size:18px;
+    font-size:16px;
     transition: color 0.3s ease-in-out, transform 0.2s ease-in-out;
   }
   

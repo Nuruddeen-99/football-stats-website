@@ -71,7 +71,7 @@ function Assists() {
         <div>
         <Header />
   
-        <div className="sl" style={{ position: 'absolute', top: '95px', right: '160px', zIndex: '1' }}>
+        <div className="sl" style={{ position: 'absolute', top: '105px', right: '160px', zIndex: '1' }}>
           <label htmlFor="season-select">Season:</label>
           <select
             id="season-select"
@@ -81,10 +81,9 @@ function Assists() {
             <option value="2024">2024</option>
             <option value="2023">2023</option>
             <option value="2022">2022</option>
-            <option value="2021">2021</option>
           </select>
         </div>
-        <br />
+        
       <div className="container">
         <div className="vertical-gridbox">
             <div className="title">Category</div>
@@ -94,7 +93,7 @@ function Assists() {
             <div className="grid-item" onClick={() => navigate(`/standings/${id}/${newSeason || season}/goals`)}>
               Goals
             </div>
-            <div className="grid-item active">
+            <div className="grid-item act">
               Assists
             </div>
             <div className="grid-item" onClick={() => navigate(`/standings/${id}/${newSeason || season}/yellow-cards`)}>

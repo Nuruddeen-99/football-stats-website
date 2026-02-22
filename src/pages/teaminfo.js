@@ -210,7 +210,7 @@ function coachClick(id) {
           </>
         )}
         <br />
-        <table>
+        <table className="tb">
           <tbody>
           <tr className="position-row">
             <td className="p-title">Coach</td>

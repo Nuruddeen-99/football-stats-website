@@ -1,9 +1,3 @@
-/* Teams.css */
-
-body {
-    font-family: Arial, sans-serif;
-}
-
 .header {
     background-color: #000000a3;
     color: #fff;
@@ -36,7 +30,7 @@ body {
   padding: 10px;
 }
 
-.team-row {
+.tm-row {
   display: grid;
   grid-template-columns: 60px 350px 400px 70px 10px; /* Adjust to your liking */
   align-items: center;
@@ -49,7 +43,7 @@ body {
   transition: background-color 0.3s ease, box-shadow 0.3s;
 }
 
-.team-row:hover {
+.tm-row:hover {
   background-color: #122a3d;
   transform: translateY(-5px);
   transform: translateX(-5px);

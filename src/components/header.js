@@ -39,6 +39,7 @@ function Header() {
   }, []);// eslint-disable-line
 
   return (
+    <>
     <nav id="h">
       {/* Logo */}
       <div style={{ display: "flex", alignItems: "center", marginLeft: "10px" }}>
@@ -81,6 +82,8 @@ function Header() {
         <li><a href="/players" className="">Players</a></li>
       </ul>
     </nav>
+    <br/>
+    </>
   );
 }
 

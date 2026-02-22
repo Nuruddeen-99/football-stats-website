@@ -2,15 +2,18 @@
     display: flex; 
     gap: 25px; 
 }
+.content{
+   flex: 1;
+}
     .title {
             padding: 10px;
             text-align: center;
             font-size: 16px; text-transform: uppercase;
             font-weight: bold;
-            background-color: #01d099;
+            background-color: #01d099; border-radius: 10px 10px 0 0;
         }
     .vertical-gridbox {
-        display: grid; overflow: hidden;
+        display: grid;
         flex-direction: column;
         width: 150px; height: 290px;
         color: white; margin-left: 16px;
@@ -18,7 +21,7 @@
         box-shadow: 0px 0px 2px 0px #46454b;
         font-family: Arial, sans-serif;
     }
-
+table{border-collapse: collapse;}
     .grid-item {
         padding: 15px; font-size: 15px;
         background-color: #121212;
@@ -27,7 +30,7 @@
         box-shadow: 0px 0px 10px 0px #000000;
         transition: background-color 0.3s, box-shadow 0.3s;
     }
-    .active {
+    .act {
         background-color: #014364;
     }
     .grid-item:hover {

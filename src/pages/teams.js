@@ -183,7 +183,7 @@ if (cachedDetails) {
           .map((teamObj) => (
             <div
               key={teamObj.team?.id}
-              className="team-row"
+              className="tm-row"
               onClick={() =>
                 handleCardClick(teamObj.team?.id, teamObj.league?.id)
               }

@@ -1,5 +1,5 @@
 :root {
-  --font: "Raleway", sans-serif;
+  --font: "Poppins", sans-serif;
 
   --background-color: #1e1e1e;
   --background-color-header: #555d5f;
@@ -9,8 +9,8 @@
   --color-red: #f64e60;
   --color-yellow: #ffa800;
 
-  --primary-font-size: 18px;
-  --secondary-font-size: 16px;
+  --primary-font-size: 16px;
+  --secondary-font-size: 18px;
   --header-font-size: 16px;
   --header-text-transform: uppercase;
   --header-link-text-transform: none;
@@ -44,14 +44,17 @@
   --teams-logo-block-radius-modal: 5px;
   --teams-logo-block-background-modal: var(--background-color-header);
 }
-#wg-api-football-games, #wg-api-football-standings{width: 85%; margin: 0 auto;}
+#wg-api-football-games, #wg-api-football-standings{
+  width: 85%; margin: 0 auto;
+}
+
 body{
   background-color: #121212;
 }
-.sl > label { color: #fff; font-size: larger; text-transform: uppercase;}
-.sl > select { font-size: medium; background: var(--background-color);
+.sl > label { color: #fff; font-size: medium; text-transform: uppercase;}
+.sl > select { font-size: small; background: var(--background-color);
   color: var(--color-text); font-family: var(--font);
-  padding: 5px; border-radius: 10px; margin-left: 5px;
+  padding: 3px; border-radius: 10px; margin-left: 5px;
 }
 .ht{
   text-align: center; margin: 20px auto;
