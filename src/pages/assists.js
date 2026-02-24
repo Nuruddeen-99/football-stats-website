@@ -5,15 +5,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 function Assists() {
   const apiKey = process.env.REACT_APP_API_KEY;
-  const { id, newSeason } = useParams(); // Get league ID and season from URL
-  const [season, setSeason] = useState('2024'); // Set default season
+  const { id, season } = useParams();
+  const currentSeason = season;
   const [topAssists, setTopAssists] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const cacheKey = `topAssists-${id}-${newSeason || season}`;
+    const cacheKey = `topAssists-${id}-${currentSeason}`;
     const cachedData = sessionStorage.getItem(cacheKey);
   
     if (cachedData) {
@@ -24,7 +24,7 @@ function Assists() {
   
     const fetchTopAssists = async () => {
       try {
-        const response = await fetch(`https://v3.football.api-sports.io/players/topassists?league=${id}&season=${newSeason || season}`, {
+        const response = await fetch(`https://v3.football.api-sports.io/players/topassists?league=${id}&season=${currentSeason}`, {
           method: 'GET',
           headers: {
             'x-apisports-key': apiKey,
@@ -50,13 +50,7 @@ function Assists() {
     };
   
     fetchTopAssists();//eslint-disable-next-line
-  }, [id, newSeason, season]);   
-
-  useEffect(() => {
-    if (newSeason) {
-      setSeason(newSeason);
-    }
-  }, [newSeason]);
+  }, [id, currentSeason]);   
 
     return (
         <div>
@@ -88,13 +82,13 @@ function Assists() {
                 return (
                   <tr key={player.id}>
                     <td className='wg_text_center'>{index + 1}</td>
-                    <td style={{cursor: 'pointer'}} onClick={() => navigate(`/player-stats/${player.id}/${newSeason || season}`)}>
+                    <td style={{cursor: 'pointer'}} onClick={() => navigate(`/player-stats/${player.id}/${currentSeason}`)}>
                       <div style={{ display: 'flex', alignItems: 'center', marginLeft: '25px' }}>
                         <img src={player.photo} alt={player.name} width="40" style={{ borderRadius: '50%' }} />
                         <span style={{ marginLeft: '15px' }}>{player.name}</span>
                       </div>
                     </td>
-                    <td className='wg_text_left' style={{ cursor: 'pointer' }} onClick={() => navigate(`/team-stats/${stats.league.id}/${newSeason || season}/${stats.team.id}`)}>
+                    <td className='wg_text_left' style={{ cursor: 'pointer' }} onClick={() => navigate(`/team-stats/${stats.league.id}/${currentSeason}/${stats.team.id}`)}>
                       <div style={{ display: 'flex', alignItems: 'center' }}>
                         <img src={stats.team.logo} alt={stats.team.name} width="30" style={{ borderRadius: '50%' }} />
                         <span style={{ verticalAlign: 'middle', marginLeft: '15px' }}>{stats.team.name}</span>

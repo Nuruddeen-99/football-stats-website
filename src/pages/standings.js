@@ -1,8 +1,16 @@
-import { useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 
 function Standings() {
   const apiKey = process.env.REACT_APP_API_KEY;
-  const { id, newSeason } = useParams();
+  const { id, season } = useParams();
+  const navigate = useNavigate();
+    
+  useEffect(() => {
+    if (!season) {
+      navigate(`/standings/${id}/2024`, { replace: true });
+    }
+  }, [season, id, navigate]);
 
   return (
     <>
@@ -17,12 +25,12 @@ function Standings() {
       ></api-sports-widget>
 
       <api-sports-widget
-        key={`${id}-${newSeason}`}
         data-type="standings"
+        key={`${id}-${season}`}
         data-league={id}
-        data-season={newSeason}
+        data-season={season}
         data-target-team="modal"
-      ></api-sports-widget>
+      />
     </>
   );
 }

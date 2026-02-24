@@ -5,12 +5,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 function Goals() {
   const apiKey = process.env.REACT_APP_API_KEY;
-  const { id, newSeason } = useParams(); // Get league ID and season from URL
+  const { id, season } = useParams(); // Get league ID and season from URL
   const [topScorers, setTopScorers] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const currentSeason = newSeason; // Default to 2024 if newSeason is not provided
+  const currentSeason = season;
 
   useEffect(() => {
     const cacheKey = `topScorers-${id}-${currentSeason}`;
@@ -50,15 +50,8 @@ function Goals() {
     };
   
     fetchTopScorers();//eslint-disable-next-line
-  }, [id, newSeason]); 
+  }, [id, currentSeason]); 
   
-
-  useEffect(() => {
-  if (!newSeason) {
-    navigate(`/standings/${id}/2024/goals`, { replace: true });
-  }
-}, [id, newSeason, navigate]);
-
   return (
     <div>
       

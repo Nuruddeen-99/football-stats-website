@@ -1,22 +1,13 @@
 import { Outlet, useParams, useNavigate, NavLink  } from "react-router-dom";
-import { useEffect } from "react";
 import Header from "../components/header";
 import "../css/standings.css";
 import "../css/api-football.css";
 
 function StandingsLayout() {
-  const { id, newSeason } = useParams();
+  const { id, season } = useParams();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!newSeason) {
-      navigate(`/standings/${id}/2024`, { replace: true });
-    }
-  }, [id, newSeason, navigate]);
-
-  const currentSeason = newSeason;
-
-  if (!currentSeason) return null;
+  const currentSeason = season;
 
   return (
     <div>
@@ -27,9 +18,9 @@ function StandingsLayout() {
         <select
           id="season-select"
           value={currentSeason}
-          onChange={(e) =>
-            navigate(`/standings/${id}/${e.target.value}`)
-          }
+          onChange={(e) => {
+            navigate(`/standings/${id}/${e.target.value}`);
+          }}
         >
           <option value="2024">2024</option>
           <option value="2023">2023</option>
@@ -52,7 +43,7 @@ function StandingsLayout() {
         </NavLink>
 
         <NavLink
-            to="goals"
+            to={`/standings/${id}/${currentSeason}/goals`}
             className={({ isActive }) =>
                 isActive ? "grid-item act" : "grid-item"
             }
@@ -61,7 +52,7 @@ function StandingsLayout() {
         </NavLink>
 
         <NavLink
-            to="assists"
+            to={`/standings/${id}/${currentSeason}/assists`}
             className={({ isActive }) =>
                 isActive ? "grid-item act" : "grid-item"
             }
@@ -70,7 +61,7 @@ function StandingsLayout() {
         </NavLink>
 
         <NavLink
-            to="yellow-cards"
+            to={`/standings/${id}/${currentSeason}/yellow-cards`}
             className={({ isActive }) =>
                 isActive ? "grid-item act" : "grid-item"
             }
@@ -79,7 +70,7 @@ function StandingsLayout() {
         </NavLink>
 
         <NavLink
-            to="red-cards"
+            to={`/standings/${id}/${currentSeason}/red-cards`}
             className={({ isActive }) =>
                 isActive ? "grid-item act" : "grid-item"
             }
