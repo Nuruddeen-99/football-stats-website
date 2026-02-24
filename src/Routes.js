@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/home";
 import Fixtures from './pages/fixtures';
+import StandingsLayout from "./pages/standingslayout";
 import Standings from "./pages/standings";
 import Goals from "./pages/goals";
 import Assists from "./pages/assists";
@@ -19,11 +20,13 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/fixtures" element={<Fixtures />} />
-        <Route path="/standings/:id/:newSeason?" element={<Standings />} />
-        <Route path="/standings/:id/:newSeason?/goals" element={<Goals />} />
-        <Route path="/standings/:id/:newSeason?/assists" element={<Assists />} />
-        <Route path="/standings/:id/:newSeason?/yellow-cards" element={<YellowCards />} />
-        <Route path="/standings/:id/:newSeason?/red-cards" element={<RedCards />} />
+        <Route path="/standings/:id/:newSeason?" element={<StandingsLayout />}>
+          <Route index element={<Standings />} />
+          <Route path="goals" element={<Goals />} />
+          <Route path="assists" element={<Assists />} />
+          <Route path="yellow-cards" element={<YellowCards />} />
+          <Route path="red-cards" element={<RedCards />} />
+        </Route>
         <Route path="/teams" element={<Teams />} />
         <Route path="/team-stats/:leagueid/:newSeason?/:teamId" element={<Teamstats />} />
         <Route path="/team-info/:teamId" element={<TeamInfo />} />

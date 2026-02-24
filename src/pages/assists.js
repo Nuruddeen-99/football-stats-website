@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import Header from '../components/header';
 import "../css/standings.css";
 import "../css/api-football.css"
 import { useParams, useNavigate } from 'react-router-dom';
@@ -59,50 +58,9 @@ function Assists() {
     }
   }, [newSeason]);
 
-  // Update season and navigate to new URL when the select option changes
-  const handleSeasonChange = (e) => {
-    const selectedSeason = e.target.value;
-    setSeason(selectedSeason);
-    navigate(`/standings/${id}/${selectedSeason}/assists`, { replace: true });
-    window.location.reload();
-  };
-
     return (
         <div>
-        <Header />
-  
-        <div className="sl" style={{ position: 'absolute', top: '105px', right: '160px', zIndex: '1' }}>
-          <label htmlFor="season-select">Season:</label>
-          <select
-            id="season-select"
-            value={season}
-            onChange={handleSeasonChange}
-          >
-            <option value="2024">2024</option>
-            <option value="2023">2023</option>
-            <option value="2022">2022</option>
-          </select>
-        </div>
         
-      <div className="container">
-        <div className="vertical-gridbox">
-            <div className="title">Category</div>
-            <div className="grid-item" onClick={() => navigate(`/standings/${id}/${newSeason || season}`)}>
-              Standings
-            </div>
-            <div className="grid-item" onClick={() => navigate(`/standings/${id}/${newSeason || season}/goals`)}>
-              Goals
-            </div>
-            <div className="grid-item act">
-              Assists
-            </div>
-            <div className="grid-item" onClick={() => navigate(`/standings/${id}/${newSeason || season}/yellow-cards`)}>
-              Yellow Cards
-            </div>
-            <div className="grid-item" onClick={() => navigate(`/standings/${id}/${newSeason || season}/red-cards`)}>
-              Red Cards
-            </div>
-      </div>
         <div className='gcontent'>
         {loading ? (
                 <div className="wg_loader"></div>
@@ -154,7 +112,6 @@ function Assists() {
         )}
       </div>
     </div>
-  </div>
     );
   }
 

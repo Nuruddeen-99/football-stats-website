@@ -26,7 +26,9 @@ table{border-collapse: collapse;}
         padding: 15px; font-size: 15px;
         background-color: #121212;
         border-bottom: 0.3px solid #46454b;
-        cursor: pointer;
+        cursor: pointer; display: block;
+        text-decoration: none;
+        color: inherit;
         box-shadow: 0px 0px 10px 0px #000000;
         transition: background-color 0.3s, box-shadow 0.3s;
     }
@@ -40,9 +42,7 @@ table{border-collapse: collapse;}
         border-radius: 0px 0px 10px 10px;
     }
     .gcontent{
-        width: 85%;
-        background-color: #1e1e1e;
-        height: 600px; border-radius: 15px;
+        border-radius: 15px;
     }
     .limg{
         width: 60px; margin-left: 20px;
