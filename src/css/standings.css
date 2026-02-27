@@ -43,6 +43,7 @@ table{border-collapse: collapse;}
     }
     .gcontent{
         border-radius: 15px;
+        background-color: #202020;
     }
     .limg{
         width: 60px; margin-left: 20px;

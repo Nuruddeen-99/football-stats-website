@@ -55,10 +55,11 @@ function Goals() {
   return (
     <div>
       
-    <div className='gcontent'>
     {loading ? (
-      <div className="wg_loader"></div>
-    ) : error ? (
+  <div className="wg_loader"></div>
+) : (
+  <div className="gcontent">
+    {error ? (
       <p style={{ color: "red", marginLeft: "30px", fontSize: "larger" }}>{error}</p>
     ) : (topScorers && topScorers.length > 0) ? (
       <div><br />
@@ -102,11 +103,14 @@ function Goals() {
             })}
           </tbody>
         </table>
-      </div>
-      ) : (
-        <p className='wg_text_center' style={{ color: 'red', alignItems: 'center' }}>An error occurred, please try again</p>
-      )}
-    </div>
+       </div>
+    ) : (
+      <p className='wg_text_center' style={{ color: 'red' }}>
+        An error occurred, please try again
+      </p>
+    )}
+  </div>
+)}
   </div>
   );
 }

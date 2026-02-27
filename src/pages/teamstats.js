@@ -76,28 +76,28 @@ function Teamstats() {
     return (
         <div>
             <Header />
-            <div className="sl" style={{ position: 'absolute', top: '80px', right: '160px', zIndex: '1' }}>
-                <label htmlFor="season-select">Season:</label>
-                <select id="season-select" value={season} onChange={handleSeasonChange}>
-                    <option value="2024">2024</option>
-                    <option value="2023">2023</option>
-                    <option value="2022">2022</option>
-                    <option value="2021">2021</option>
-                </select>
-            </div>
-            <div  style={{ position: 'absolute', top: '84px', left: '180px', zIndex: '1' }}>
-                <span className="vti" onClick={() => navigate(`/team-info/${teamId}`)}>View Team Info</span>
-            </div>
 
             {loading && <div className="loader"></div>}
             {error && <p style={{ color: "red", marginLeft: "20px", fontSize: "larger" }}>{error}</p>}
 
             {stats?.fixtures && (
-                <div style={{width: "78%", margin: "0 auto"}}>
+                
+                <div style={{width: "80%", margin: "0 auto"}}>
+                    <div className="sl" style={{ position: 'absolute', top: '103px', right: '175px', zIndex: '1' }}>
+                <label htmlFor="season-select">Season:</label>
+                <select id="season-select"  value={season} onChange={handleSeasonChange}>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                </select>
+                </div>
+                <div  style={{ position: 'absolute', top: '105px', left: '180px', zIndex: '1' }}>
+                    <span className="vti" onClick={() => navigate(`/team-info/${teamId}`)}>View Team Info</span>
+                </div>
                     <table style={{ width: "100%" }}>
                     <thead>
                         <tr>
-                        <td className="wg_header wg_text_center" colSpan="4">
+                        <td className="wg_header wg_text_center" colSpan="4" style={{borderRadius: "20px 20px 0px 0px"}}>
                             <img className="wg_flag" alt={`${stats.team?.name} logo`} src={stats.team?.logo}/> 
                             {stats.team?.name}
                         </td>

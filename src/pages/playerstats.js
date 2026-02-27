@@ -295,14 +295,14 @@ if (cachedData) {
                 <p style={{ color: "red", marginLeft: "30px", fontSize: "larger" }}>{error}</p>
             ) : (playerData?.statistics?.length > 0 && playerInfo && currentTeam && (
                     <div  style={{width: '78%', margin: '0 auto'}}>
-                        <h2 className='header' style={{borderRadius: '0px 0px 20px 20px'}}>Player Info</h2>
+                        <h2 className='wg_header wg_text_center' style={{borderRadius: '0px 0px 20px 20px'}}>Player Info</h2>
                         <div style={{ textAlign: "center", width: "40%", alignSelf: "center", margin: "auto" }}>
                             <img className='plr-image' src={playerInfo?.player?.photo} alt={playerInfo?.player?.name || "Unknown"} />
                             <h2 className="player-name">{playerInfo?.player?.firstname || ""} {playerInfo?.player?.lastname || ""}</h2>
                         </div>
 
                         <div className="info-grid">
-                            <span style={{ alignContent: 'center', gridColumn: "1 / -1", fontFamily: 'verdana', fontWeight: 'bold' }}>Details</span>
+                            <span style={{ alignContent: 'center', gridColumn: "1 / -1", fontFamily: 'Poppins', fontWeight: 'bold' }}>Details</span>
                             <div className="info-item"><span className="info-title">Height / Weight</span><span className="info-value">{playerData.player.height} / {playerData.player.weight}</span></div>
                             <div className="info-item"><span className="info-title">Position</span><span className="info-value">{playerInfo?.player?.position || "N/A"}</span></div>
                             <div className="info-item"><span className="info-title">Age / Birthday</span><span className="info-value">Age {playerData.player.age} / {playerData.player.birth.date}</span></div>
@@ -319,18 +319,17 @@ if (cachedData) {
                         </div>
 
                         <br />
-                        <h2 className='header' style={{margin:'0px'}}>Seasonal Stats</h2>
+                        <h2 className='header wg_text_center' style={{margin:'0px', borderRadius: '20px 20px 0px 0px'}}>Seasonal Stats</h2>
                         <div className="sl" style={{ position: 'absolute', marginTop: "16px", right: '160px', zIndex: '1' }}>
                             <label htmlFor="season-select">Season:</label>
                             <select id="season-select" value={selectedSeason} onChange={handleSeasonChange}>
                                 <option value="2024">2024</option>
                                 <option value="2023">2023</option>
                                 <option value="2022">2022</option>
-                                <option value="2021">2021</option>
                             </select>
                         </div>
 
-                        <table className='wg_table' style={{ width: "100%" }}>
+                        <table className='wg_table' style={{ width: "100%", fontFamily:"Poppins" }}>
                             <thead>
                                 <tr>
                                     <td className="wg_header wg_text_center" colSpan="2">
@@ -364,8 +363,8 @@ if (cachedData) {
                             </tbody>
                         </table>
 
-                        <br />
-                        <h2 className='header' style={{margin:'0px'}}>Transfer History</h2>
+                        <br /><br/>
+                        <h2 className='wg_header wg_text_center' style={{margin:'0px',borderRadius: '20px 20px 0px 0px'}}>Transfer History</h2>
                         <div className='transfer-grid'>
                             {loadingTransfers && <div className="loader"></div>}
                             {errorTransfers && console.log(errorTransfers)}

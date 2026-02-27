@@ -221,7 +221,7 @@ function coachClick(id) {
                 <img src={teamCoach.photo} alt="Coach" className="p-img" />
                 <div className="p-details">
                   <span className="p-name">{teamCoach.name}</span>
-                  <span className="p-meta">Age {teamCoach.age} &nbsp; {teamCoach.nationality}</span>
+                  <span className="p-meta"> Age  {teamCoach.age} &nbsp;&nbsp; {teamCoach.nationality}</span>
                 </div>
               </td>
             </tr>
@@ -229,7 +229,7 @@ function coachClick(id) {
           </tbody>
         </table>
         <br />
-        <table>
+        <table className="tb">
         <thead>
           <tr className="wg_header">
             <th colSpan="4" className="wg_text_center">Players</th>
@@ -250,7 +250,7 @@ function coachClick(id) {
                         <img src={player.photo} alt={player.name} className="p-img" loading="lazy"/>
                         <div className="p-details">
                           <span className="p-name">{player.name}</span>
-                          <span className="p-meta">No.{player.number || '-'} &nbsp;&nbsp; Age {player.age} &nbsp;</span>
+                          <span className="p-meta">No.{player.number || '-'} &nbsp;&nbsp;&nbsp; Age {player.age} &nbsp;</span>
                         </div>
                       </td>
                     </tr>
