@@ -4,6 +4,7 @@ function Fixtures() {
   const apiKey = process.env.REACT_APP_API_KEY;
   return <>
 <Header/>
+<br/>
 <api-sports-widget data-type="config"
   data-key={apiKey}
   data-sport="football"

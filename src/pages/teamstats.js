@@ -83,7 +83,7 @@ function Teamstats() {
             {stats?.fixtures && (
                 
                 <div style={{width: "80%", margin: "0 auto"}}>
-                    <div className="sl" style={{ position: 'absolute', top: '103px', right: '175px', zIndex: '1' }}>
+                    <div className="sl" style={{ position: 'absolute', top: '108px', right: '175px', zIndex: '1' }}>
                 <label htmlFor="season-select">Season:</label>
                 <select id="season-select"  value={season} onChange={handleSeasonChange}>
                     <option value="2024">2024</option>
@@ -91,9 +91,10 @@ function Teamstats() {
                     <option value="2022">2022</option>
                 </select>
                 </div>
-                <div  style={{ position: 'absolute', top: '105px', left: '180px', zIndex: '1' }}>
+                <div  style={{ position: 'absolute', top: '110px', left: '180px', zIndex: '1' }}>
                     <span className="vti" onClick={() => navigate(`/team-info/${teamId}`)}>View Team Info</span>
                 </div>
+                <br/>
                     <table style={{ width: "100%" }}>
                     <thead>
                         <tr>

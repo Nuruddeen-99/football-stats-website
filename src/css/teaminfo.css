@@ -1,7 +1,6 @@
 .team-p {
     width: 78%;
     margin: 0 auto;
-    font-family: Arial, sans-serif;
   }
   .p-group h2 {
     background-color: #222;
@@ -11,7 +10,7 @@
   }
   .p-title{
     background-color: rgb(0,8,10);
-    color: white; font-family: 'Lucida Sans';
+    color: white;
     height: 12px; font-size: medium;
   }
 

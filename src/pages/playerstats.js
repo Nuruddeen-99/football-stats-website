@@ -392,7 +392,7 @@ if (cachedData) {
                         </div>
 
                         <br />
-                        <h2 className='header' style={{margin:'0px'}}>All Trophies Won</h2>
+                        <h2 className='header' style={{margin:'0px', borderRadius: '20px 20px 0px 0px'}}>All Trophies Won</h2>
                     <div className='transfer-grid'>
                         {loadingTrophies && <div className="loader"></div>}
                         {errorTrophies && console.log(errorTrophies)}

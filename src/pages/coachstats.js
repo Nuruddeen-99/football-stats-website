@@ -170,7 +170,7 @@ function CoachStats() {
                 <p style={{ color: "red", marginLeft: "30px", fontSize: "larger" }}>{error}</p>
             ) : (
                 <div style={{ width: '78%', margin: '0 auto' }}>
-                    <h2 className='header' style={{ borderRadius: '0px 0px 20px 20px' }}>Coach Info</h2>
+                    <h2 className='wg_header wg_text_center' style={{ borderRadius: '0px 0px 20px 20px' }}>Coach Info</h2>
                     <div style={{ textAlign: "center", width: "40%", alignSelf: "center", margin: "auto" }}>
                         <img className='player-image' src={coachData.photo} alt={coachData.name} />
                         <h2 className="player-name">{coachData.firstname} {coachData.lastname}</h2>
@@ -197,7 +197,7 @@ function CoachStats() {
                     </div>
 
                     <br />
-                    <h2 className='header' style={{ margin: '0px' }}>Career History</h2>
+                    <h2 className='wg_header wg_text_center' style={{ margin: '0px', borderRadius: '20px 20px 0px 0px' }}>Career History</h2>
                     <div className='transfer-grid'>
                         {coachData.career.length > 0 ? (
                             coachData.career.map((job, index) => (
@@ -214,7 +214,7 @@ function CoachStats() {
                         )}
                     </div>
                     <br />
-                    <h2 className='header' style={{margin:'0px'}}>All Trophies Won</h2>
+                    <h2 className='wg_header wg_text_center' style={{margin:'0px', borderRadius: '20px 20px 0px 0px'}}>All Trophies Won</h2>
                     <div className='transfer-grid'>
                         {loadingTrophies && <div className="loader"></div>}
                         {errorTrophies && console.log(errorTrophies)}

@@ -12,8 +12,8 @@ function StandingsLayout() {
   return (
     <div>
       <Header />
-
-      <div className="sl" style={{ position: "absolute", top: "102px", right: "160px", zIndex: "1" }}>
+<br/>
+      <div className="sl" style={{ position: "absolute", top: "108px", right: "160px", zIndex: "1" }}>
         <label htmlFor="season-select">Season:</label>
         <select
           id="season-select"

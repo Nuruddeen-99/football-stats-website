@@ -187,6 +187,7 @@ function coachClick(id) {
       <div className="team-p">
         {teamData && (
           <>
+          <br/>
             <div className="wg_header wg_text_center" style={{ borderRadius: "0px 0px 15px 15px" }}>
               <img className="wg_flag" alt={teamData.team.name} src={teamData.team.logo} />
               {teamData.team.name}

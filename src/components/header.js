@@ -82,7 +82,6 @@ function Header() {
         <li><a href="/players" className="">Players</a></li>
       </ul>
     </nav>
-    <br/>
     </>
   );
 }

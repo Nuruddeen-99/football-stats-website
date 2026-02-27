@@ -205,8 +205,9 @@ if (cachedDetails) {
                 )}{" "}
                 {teamObj.league.name}
               </span>
-              Country: &nbsp;
+              
               <span className="team-country">
+                Country: &nbsp;
                 {teamObj.country.flag && (
                   <img
                     src={teamObj.country.flag}
