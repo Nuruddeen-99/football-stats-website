@@ -85,7 +85,10 @@ function CoachStats() {
                 if (data.response.length > 0) {
                     const filteredTrophies = await Promise.all(
                         data.response
-                            .filter(trophy => trophy.place === "Winner")
+                            .filter(trophy => 
+                                trophy.place === "Winner" && 
+                                trophy.season?.trim()
+                            )
                             .map(async (trophy) => {
                                 const country = trophy.country || "";
                                 const countryCode = country ? await getCountryCode(country) : null;
