@@ -1,255 +1,281 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import Header from '../components/header';
-import '../css/playerstats.css';
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import Loader from "../components/Loader";
+import TrophyList from "../components/TrophyList";
+import { fetchFootballApi } from "../api/football";
+import { getFlagForCountry } from "../utils/flags";
+import { readCache, writeCache } from "../utils/cache";
+import "../css/playerstats.css";
+
+const dash = (value) =>
+  value === null || value === undefined || value === "" ? "–" : value;
+
+function formatDate(dateString) {
+  if (!dateString) return "Unknown";
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return dateString;
+
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 function CoachStats() {
-    const apiKey = process.env.REACT_APP_API_KEY;
-    const { coachId } = useParams();
-    const [coachData, setCoachData] = useState(null);
-    const [flag, setFlag] = useState(null);
-    const [trophies, setTrophies] = useState([]);
-    const [loadingTrophies, setLoadingTrophies] = useState(true);
-    const [errorTrophies, setErrorTrophies] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+  const { coachId } = useParams();
 
-    useEffect(() => {
-    
-        const fetchCoachData = async () => {
-            try {
-                const cachedData = sessionStorage.getItem(`coachData-${coachId}`);
-                if (cachedData) {
-                    setCoachData(JSON.parse(cachedData));
-                    const countryCode = await getCountryCode(JSON.parse(cachedData)?.nationality);
-                    setFlag(getFlagUrl(countryCode));
-                    setLoading(false);
-                    return;
-                }
-                const response = await fetch(
-                    `https://v3.football.api-sports.io/coachs?id=${coachId}`,
-                    {
-                        method: "GET",
-                        headers: {
-                            "x-rapidapi-host": "v3.football.api-sports.io",
-                            "x-apisports-key": apiKey,
-                        },
-                    }
-                );
-                if (!response.ok) throw new Error("Failed to fetch coach data.");
-                const data = await response.json();
-                if (data.response.length === 0) throw new Error("No coach found.");
-                const coachData = data.response[0];
-                setCoachData(coachData);
-                const countryCode = await getCountryCode(coachData?.nationality);
-                setFlag(getFlagUrl(countryCode));
-                sessionStorage.setItem(`coachData-${coachId}`, JSON.stringify(coachData));
-                if (Object.keys(data.errors).length > 0) {
-                    console.log("Errors found: ");
-                    for (const [key, value] of Object.entries(data.errors)) {
-                        console.log(`${key}: ${value}`);
-                    }
-                  }
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchCoachData();//eslint-disable-next-line
-    }, [coachId]); 
+  const [coach, setCoach] = useState(null);
+  const [flag, setFlag] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const cacheKey = `coachTrophies_${coachId}`;
-        const cachedData = sessionStorage.getItem(cacheKey);
-        if (cachedData) {
-            setTrophies(JSON.parse(cachedData));
-            setLoadingTrophies(false);
-            return;
+  const [trophies, setTrophies] = useState([]);
+  const [loadingTrophies, setLoadingTrophies] = useState(true);
+  const [trophiesError, setTrophiesError] = useState(null);
+
+  useEffect(() => {
+    const cacheKey = `coach-info-${coachId}`;
+    const cached = readCache(cacheKey);
+
+    if (cached) {
+      setCoach(cached);
+      setError(null);
+      setLoading(false);
+      getFlagForCountry(cached?.nationality).then(setFlag);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    let cancelled = false;
+
+    setLoading(true);
+    setError(null);
+
+    (async () => {
+      try {
+        const response = await fetchFootballApi(`/coachs?id=${coachId}`, {
+          signal: controller.signal,
+        });
+
+        if (cancelled) return;
+
+        const data = response?.[0] || null;
+
+        if (!data) {
+          setError("This coach could not be found.");
+          return;
         }
-    
-        const fetchTrophies = async () => {
-            setLoadingTrophies(true);
-            setErrorTrophies(null);
-    
-            try {
-                const response = await fetch(`https://v3.football.api-sports.io/trophies?coach=${coachId}`, {
-                    method: 'GET',
-                    headers: {
-                        'x-apisports-key': apiKey
-                    }
-                });
-    
-                const data = await response.json();
-    
-                if (data.response.length > 0) {
-                    const filteredTrophies = await Promise.all(
-                        data.response
-                            .filter(trophy => 
-                                trophy.place === "Winner" && 
-                                trophy.season?.trim()
-                            )
-                            .map(async (trophy) => {
-                                const country = trophy.country || "";
-                                const countryCode = country ? await getCountryCode(country) : null;
-                                const flagUrl = getFlagUrl(countryCode);
-                                return { ...trophy, flagUrl, country };
-                            })
-                    );
-    
-                    setTrophies(filteredTrophies);
-                    sessionStorage.setItem(cacheKey, JSON.stringify(filteredTrophies));
-                } else {
-                    setErrorTrophies("No trophies found for this coach.");
-                }
-    
-                if (Object.keys(data.errors).length > 0) {
-                    console.log("Errors found: ");
-                    for (const [key, value] of Object.entries(data.errors)) {
-                        console.log(`${key}: ${value}`);
-                    }
-                  }
-            } catch (err) {
-                console.error("Failed to fetch trophies", err);
-                setErrorTrophies("Failed to fetch trophies.");
-            } finally {
-                setLoadingTrophies(false);
-            }
-        };
-    
-        fetchTrophies(); //eslint-disable-next-line
-    }, [coachId]);  
 
-        const getCountryCode = async (countryName) => {
-            if (countryName.toLowerCase() === "england"){
-                return "gb-eng";
-            } else if (countryName.toLowerCase() === "europe"){
-                return "eur";
-            } else if (countryName.toLowerCase() === "world"){
-                return "world";
-            } else if(countryName.toLowerCase() === "south-america"){
-                return "sam";
-            } else if (countryName.toLowerCase() === "africa"){
-                return "afr";
-            } else if (countryName.toLowerCase() === "nc-america"){
-                return "ncam";
-            } else if (countryName.toLowerCase() === "asia"){
-                return "asia";
-            }
-            try {
-                const response = await fetch(`https://restcountries.com/v3.1/name/${countryName}?fields=cca2`);
-                const data = await response.json();
-                return data[0]?.cca2.toLowerCase(); // Convert to lowercase for API-FOOTBALL
-            } catch (error) {
-                console.error(`Error fetching country code for ${countryName}:`, error);
-                return null;
-            }
-        };
-        
-        const getFlagUrl = (countryCode) => {
-            if (countryCode === "eur"){
-                return `/logos/uefa.png`;
-            } else if (countryCode === "world"){
-                return `/logos/world.png`;
-            } else if (countryCode === "sam"){
-                return `/logos/conmebol.png`;
-            } else if (countryCode === "afr"){
-                return `/logos/caf.png`;
-            } else if (countryCode === "ncam"){
-                return `/logos/concacaf.png`;
-            } else if (countryCode === "asia"){
-                return `/logos/afc.png`;
-            } else {
-                return `https://media.api-sports.io/flags/${countryCode}.svg`
-            }
-        };
+        setCoach(data);
+        writeCache(cacheKey, data);
 
+        const countryFlag = await getFlagForCountry(data?.nationality);
+        if (!cancelled) setFlag(countryFlag);
+      } catch (err) {
+        if (cancelled || err.name === "AbortError") return;
+        setError(err.message || "Failed to load coach information.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [coachId]);
+
+  useEffect(() => {
+    const cacheKey = `coach-trophies-${coachId}`;
+    const cached = readCache(cacheKey);
+
+    if (cached) {
+      setTrophies(cached);
+      setTrophiesError(null);
+      setLoadingTrophies(false);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    let cancelled = false;
+
+    setLoadingTrophies(true);
+    setTrophiesError(null);
+
+    (async () => {
+      try {
+        const response = await fetchFootballApi(`/trophies?coach=${coachId}`, {
+          signal: controller.signal,
+        });
+
+        const winners = (response || []).filter(
+          (trophy) =>
+            trophy.place === "Winner" && String(trophy.season ?? "").trim()
+        );
+
+        const withFlags = await Promise.all(
+          winners.map(async (trophy) => ({
+            ...trophy,
+            flagUrl: trophy.country
+              ? await getFlagForCountry(trophy.country)
+              : null,
+          }))
+        );
+
+        if (cancelled) return;
+
+        setTrophies(withFlags);
+        writeCache(cacheKey, withFlags);
+      } catch (err) {
+        if (cancelled || err.name === "AbortError") return;
+        setTrophies([]);
+        setTrophiesError(err.message || "Failed to load trophies.");
+      } finally {
+        if (!cancelled) setLoadingTrophies(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [coachId]);
+
+  if (loading) return <Loader label="Loading coach profile…" />;
+
+  if (error) {
     return (
-        <>
-            <Header />
-            {loading ? (
-                <div className="loader"></div>
-            ) : error ? (
-                <p style={{ color: "red", marginLeft: "30px", fontSize: "larger" }}>{error}</p>
-            ) : (
-                <div style={{ width: '78%', margin: '0 auto' }}>
-                    <h2 className='wg_header wg_text_center' style={{ borderRadius: '0px 0px 20px 20px' }}>Coach Info</h2>
-                    <div style={{ textAlign: "center", width: "40%", alignSelf: "center", margin: "auto" }}>
-                        <img className='player-image' src={coachData.photo} alt={coachData.name} />
-                        <h2 className="player-name">{coachData.firstname} {coachData.lastname}</h2>
-                    </div>
-
-                    <div className="info-grid">
-                        <div className="info-item"><span className="info-title">Age / Birthday</span><span className="info-value">{coachData.age} / {coachData.birth.date}</span></div>
-                        <div className="info-item"><span className="info-title">Birthplace</span><span className="info-value">{coachData.birth.place}, {coachData.birth.country}</span></div>
-                        <div className="info-item">
-                            <span className="info-title">Nationality</span>
-                            <span className="info-value">
-                             {flag && <img className="wg_flag" src={flag} alt='Country flag' />}   
-                                {coachData.nationality}
-                            </span>
-                            </div>
-                        <div className="info-item"><span className="info-title">Height / Weight</span><span className="info-value">{coachData.height || "Unknown"} / {coachData.weight || "Unknown"}</span></div>
-                        <div className="info-item"><span className="info-title">Current Team</span>
-                            <span className="info-value">
-                                {coachData.team ? (
-                                    <><img className="wg_flag" alt="Club logo" src={coachData.team.logo} /> {coachData.team.name}</>
-                                ) : "N/A"}
-                            </span>
-                        </div>
-                    </div>
-
-                    <br />
-                    <h2 className='wg_header wg_text_center' style={{ margin: '0px', borderRadius: '20px 20px 0px 0px' }}>Career History</h2>
-                    <div className='transfer-grid'>
-                        {coachData.career.length > 0 ? (
-                            coachData.career.map((job, index) => (
-                                <div key={index} className='info-item'>
-                                    <span className='info-title'>{job.start} - {job.end || "Present"}</span>
-                                    <div className='transfer-teams'>
-                                        <img src={job.team.logo} alt={job.team.name} className='team-logo' />
-                                        <span>{job.team.name}</span>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className='info-item'><span className='info-value'>No career history available</span></div>
-                        )}
-                    </div>
-                    <br />
-                    <h2 className='wg_header wg_text_center' style={{margin:'0px', borderRadius: '20px 20px 0px 0px'}}>All Trophies Won</h2>
-                    <div className='transfer-grid'>
-                        {loadingTrophies && <div className="loader"></div>}
-                        {errorTrophies && console.log(errorTrophies)}
-                        {!loadingTrophies && !errorTrophies && trophies.length > 0 ? (
-                            Object.entries(
-                                trophies.reduce((acc, { league, season, flagUrl, country }) => {
-                                    if (!acc[league]) acc[league] = { seasons: [], flagUrl, country };
-                                    acc[league].seasons.push(season);
-                                    return acc;
-                                }, {})
-                            ).map(([league, { seasons, flagUrl, country }], index) => (
-                                <div key={index} className='info-item'>
-                                   <div  style={{ display: 'flex', verticalAlign:'middle', gap: '10px' }}>
-                                    {flagUrl && (
-                                        <img src={flagUrl} alt={`${country} flag`} className="c-flag" />
-                                    )}
-                                    <span className='info-title'>{league} (x{seasons.length})</span></div>
-                                    <ul style={{ margin: '5px 0', paddingLeft: '20px' }}>
-                                        {seasons.map((season, i) => (
-                                            <li key={i} className='info-value'>{season}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))
-                        ) : (
-                            !loadingTrophies && <div className='info-item'><span className='info-value'>No trophies won</span></div>
-                        )}
-                      </div>
-                </div>
-            )}
-        </>
+      <div>
+        <div className="alert" role="alert">
+          <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+          <span>{error}</span>
+        </div>
+        <div className="flex-center" style={{ marginTop: "1rem" }}>
+          <Link to="/teams" className="btn-secondary">
+            <i className="fa-solid fa-arrow-left" aria-hidden="true" />
+            Back to team search
+          </Link>
+        </div>
+      </div>
     );
+  }
+
+  if (!coach) return null;
+
+  const name =
+    [coach.firstname, coach.lastname].filter(Boolean).join(" ") || coach.name;
+  const career = [...(coach.career || [])].sort(
+    (a, b) => new Date(b.start) - new Date(a.start)
+  );
+
+  return (
+    <div>
+      <div className="page-header-row">
+        <div className="player-identity">
+          <img
+            src={coach.photo || "/logos/defaultimg.png"}
+            alt=""
+            className="player-avatar"
+            loading="lazy"
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.src = "/logos/defaultimg.png";
+            }}
+          />
+          <div className="identity-names">
+            <h1>{name}</h1>
+            <p>Coach{coach.nationality ? ` · ${coach.nationality}` : ""}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="info-grid">
+        <div className="info-card">
+          <span className="info-title">Age / Birthday</span>
+          <span className="info-value">
+            {dash(coach.age)}
+            {coach.birth?.date ? ` · ${formatDate(coach.birth.date)}` : ""}
+          </span>
+        </div>
+        <div className="info-card">
+          <span className="info-title">Birthplace</span>
+          <span className="info-value">
+            {[coach.birth?.place, coach.birth?.country].filter(Boolean).join(", ") || "–"}
+          </span>
+        </div>
+        <div className="info-card">
+          <span className="info-title">Nationality</span>
+          <span className="info-value">
+            {flag && <img src={flag} alt="" loading="lazy" />}
+            {dash(coach.nationality)}
+          </span>
+        </div>
+        <div className="info-card">
+          <span className="info-title">Height / Weight</span>
+          <span className="info-value">
+            {dash(coach.height)} / {dash(coach.weight)}
+          </span>
+        </div>
+        <div className="info-card">
+          <span className="info-title">Current team</span>
+          <span className="info-value">
+            {coach.team ? (
+              <Link
+                to={`/team-info/${coach.team.id}`}
+                className="table-link table-team-cell"
+              >
+                <img src={coach.team.logo} alt="" className="crest" loading="lazy" />
+                <span>{coach.team.name}</span>
+              </Link>
+            ) : (
+              "–"
+            )}
+          </span>
+        </div>
+      </div>
+
+      <h2 className="section-title" style={{ marginTop: "1.5rem" }}>
+        Career history
+      </h2>
+      {career.length === 0 ? (
+        <div className="section-body">
+          <div className="empty-state" style={{ border: "none", background: "transparent" }}>
+            No career history available.
+          </div>
+        </div>
+      ) : (
+        <div className="transfer-list">
+          {career.map((job, index) => (
+            <article className="transfer-card" key={`${job.team?.id || index}-${job.start}`}>
+              <div className="transfer-card-head">
+                <span>
+                  {formatDate(job.start)} – {job.end ? formatDate(job.end) : "Present"}
+                </span>
+              </div>
+              <div className="transfer-team">
+                {job.team?.logo ? (
+                  <img src={job.team.logo} alt="" loading="lazy" />
+                ) : (
+                  <i className="fa-solid fa-shield-halved" aria-hidden="true" />
+                )}
+                <span>{job.team?.name || "Unknown club"}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      <h2 className="section-title" style={{ marginTop: "1.5rem" }}>
+        Trophies won
+      </h2>
+      <TrophyList
+        trophies={trophies}
+        loading={loadingTrophies}
+        error={trophiesError}
+      />
+    </div>
+  );
 }
 
 export default CoachStats;

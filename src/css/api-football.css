@@ -45,25 +45,42 @@
   --teams-logo-block-background-modal: var(--background-color-header);
 }
 #wg-api-football-games, #wg-api-football-standings{
-  width: 85%; margin: 0 auto;
+  width: 100%; margin: 0 auto;
 }
 
-body{
-  background-color: #121212;
-}
-.sl > label { color: #fff; font-size: medium; text-transform: uppercase;}
-.sl > select { font-size: small; background: var(--background-color);
-  color: var(--color-text); font-family: var(--font);
-  padding: 3px; border-radius: 10px; margin-left: 5px;
-}
-.ht{
-  text-align: center; margin: 20px auto;
-  background-color: #555d5f; color: white;
-  padding: 10px; border-radius: 10px; width: 40%;
-  text-transform: capitalize;
+/* React wrapper around API-Sports widgets */
+.widget-shell {
+  position: relative;
+  width: 100%;
+  min-width: 0;
 }
 
-.wg-table {
+.widget-status {
+  margin-bottom: 1rem;
+}
+
+.widget-status .alert {
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.widget-status .alert p {
+  margin: 0;
+}
+
+.widget-status .btn-secondary {
+  margin-top: 0.6rem;
+}
+
+.widget-status .global-loader-container {
+  padding: 2.5rem 1rem;
+  background: var(--bg-card, #1e293b);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+}
+
+.wg_table {
   font-family: var(--font);
   width:100%; margin-top: 2px;
   border-collapse: collapse;
@@ -526,7 +543,7 @@ background-color: var(--color-green);
 
 .wg_grid {
   position:relative;
-  background-image: url('/public/soccer_field.png');
+  background-image: url('../../public/soccer_field.png');
   background-size: 100% 100%;
 }
 
@@ -600,13 +617,13 @@ background-color: var(--color-green);
  content: ' ';
  vertical-align: middle;
  display: inline-block;
- background-image: url("/public/sprite.svg");
+ background-image: url("../../public/sprite.svg");
  background-repeat: no-repeat;
  background-size: 13em 49.1em;
 }
 
 .no-svg .icon-svg:before {
- background-image: url("/public/sprite.svg");
+ background-image: url("../../public/sprite.svg");
 }
 
 .icon-svg.icon-corner-flag:before {

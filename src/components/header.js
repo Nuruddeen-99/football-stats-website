@@ -1,88 +1,154 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import {
+  ALL_COMPETITIONS,
+  COMPETITION_GROUPS,
+  getCompetitionLogo,
+} from "../data/competitions";
 import "../css/header.css";
 
-function Header() {
-  const [showDropdown, setShowDropdown] = useState(false);
+const navLinkClass = ({ isActive }) => (isActive ? "nav-link active" : "nav-link");
 
-  const competitions = {
-    Europe: [
-      { name: "Premier League", logo: "epl.png", id: 39 },
-      { name: "EFL Championship", logo: "efl.png", id: 40 },
-      { name: "La Liga", logo: "laliga.png", id: 140 },
-      { name: "Bundesliga", logo: "bundesliga.png", id: 78 },
-      { name: "Serie A", logo: "seriea.png", id: 135 },
-      { name: "Ligue 1", logo: "ligue1.png", id: 61 },
-      { name: "Primeira Liga", logo: "primeira_liga.png", id: 94 },
-      { name: "Eredivisie", logo: "erediv.png", id: 88 },
-      { name: "Brasileirão", logo: "brasileirao.png", id: 71 },
-    ],
-    "Other Leagues": [
-      { name: "MLS", logo: "mls.png", id: 253 },
-      { name: "Saudi Pro League", logo: "spl.png", id: 307 },
-    ],
-    "International": [
-      { name: "Champions League", logo: "ucl.png", id: 2 },
-      { name: "Europa League", logo: "uel.png", id: 3 },
-      { name: "Conference League", logo: "uecl.png", id: 848 },
-    ], 
+function Header() {
+  const [standingsOpen, setStandingsOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const headerRef = useRef(null);
+  const location = useLocation();
+
+  // Close every panel whenever the route changes.
+  useEffect(() => {
+    setStandingsOpen(false);
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  // Close on outside click / Escape.
+  useEffect(() => {
+    if (!standingsOpen && !menuOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (headerRef.current && !headerRef.current.contains(event.target)) {
+        setStandingsOpen(false);
+        setMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setStandingsOpen(false);
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [standingsOpen, menuOpen]);
+
+  // Warm the browser cache for league logos so the dropdown opens instantly.
+  useEffect(() => {
+    ALL_COMPETITIONS.forEach(({ logo }) => {
+      const image = new Image();
+      image.src = `/logos/${logo}`;
+    });
+  }, []);
+
+  const standingsActive = location.pathname.startsWith("/standings");
+
+  const closeMenus = () => {
+    setStandingsOpen(false);
+    setMenuOpen(false);
   };
 
-  useEffect(() => {
-    const logos = Object.values(competitions)
-      .flat()
-      .map((league) => `/logos/${league.logo}`);
-
-    logos.forEach((src) => {
-      const img = new Image();
-      img.src = src;
-    }); 
-  }, []);// eslint-disable-line
-
   return (
-    <>
-    <nav id="h">
-      {/* Logo */}
-      <div style={{ display: "flex", alignItems: "center", marginLeft: "10px" }}>
-        <a href="/" style={{ textDecoration: "none", color: "white", fontSize: "20px", fontWeight: "bold" }}>
-          <span>FOOTY STATS</span>
-        </a>
-        <img src="/ballimg.png" alt="ball icon" width="40" height="40" style={{ borderRadius: "100%", marginLeft: "10px" }} />
-      </div>
+    <header className="site-header" ref={headerRef}>
+      <div className="site-header-inner">
+        <Link to="/" className="brand" aria-label="Footy Stats home">
+          <img src="/ballimg.png" alt="" width="38" height="38" />
+          <span>Footy Stats</span>
+        </Link>
 
-      {/* Navigation Links */}
-      <ul>
-        <li><a href="/" className="">News</a></li>
-        <li><a href="/fixtures" className="">Fixtures</a></li>
-        <li className="dropdown">
         <button
-            className="buttn"
-            onClick={() => setShowDropdown(!showDropdown)}
-          >
-            League Standings
-            <i className={`arrow ${showDropdown ? 'up' : 'down'}`}></i>
-          </button>
-          {/* Dropdown Menu */}
-          {showDropdown && (
-            <div className="dropdown-menu">
-              {Object.entries(competitions).map(([category, leagues]) => (
-                <div key={category} className="dropdown-category">
-                  <strong>{category}</strong>
-                  {leagues.map((league) => (
-                    <a key={league.id} href={`/standings/${league.id}`} data-id={league.id} className="dropdown-item">
-                      <img src={`/logos/${league.logo}`} alt={league.name} className="league-logo" />
-                      {league.name}
-                    </a>
+          type="button"
+          className="nav-toggle"
+          aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          <i className={menuOpen ? "fa-solid fa-xmark" : "fa-solid fa-bars"} aria-hidden="true" />
+        </button>
+
+        <nav className={`site-nav ${menuOpen ? "open" : ""}`} aria-label="Main navigation">
+          <ul className="nav-list">
+            <li>
+              <NavLink to="/" end className={navLinkClass} onClick={closeMenus}>
+                News
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/fixtures" className={navLinkClass} onClick={closeMenus}>
+                Fixtures
+              </NavLink>
+            </li>
+            <li className="dropdown">
+              <button
+                type="button"
+                className={`nav-link nav-button ${standingsActive ? "active" : ""}`}
+                aria-expanded={standingsOpen}
+                aria-haspopup="true"
+                onClick={() => setStandingsOpen((open) => !open)}
+              >
+                League Standings
+                <i
+                  className={`fa-solid fa-chevron-${standingsOpen ? "up" : "down"}`}
+                  aria-hidden="true"
+                />
+              </button>
+
+              {standingsOpen && (
+                <div className="dropdown-panel">
+                  {Object.entries(COMPETITION_GROUPS).map(([category, leagues]) => (
+                    <div className="dropdown-column" key={category}>
+                      <span className="dropdown-heading">{category}</span>
+                      {leagues.map((league) => (
+                        <Link
+                          key={league.id}
+                          to={`/standings/${league.id}`}
+                          className="dropdown-item"
+                          onClick={closeMenus}
+                        >
+                          <img
+                            src={getCompetitionLogo(league)}
+                            alt=""
+                            className="dropdown-logo"
+                            loading="lazy"
+                          />
+                          <span>{league.name}</span>
+                        </Link>
+                      ))}
+                    </div>
                   ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </li>
-        <li><a href="/teams" className="">Teams</a></li>
-        <li><a href="/players" className="">Players</a></li>
-      </ul>
-    </nav>
-    </>
+              )}
+            </li>
+            <li>
+              <NavLink to="/teams" className={navLinkClass} onClick={closeMenus}>
+                Teams
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/players" className={navLinkClass} onClick={closeMenus}>
+                Players
+              </NavLink>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </header>
   );
 }
 

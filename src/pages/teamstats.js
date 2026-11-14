@@ -1,236 +1,260 @@
-import React, { useEffect, useState } from "react";
-import Header from "../components/header";
+import { useEffect, useState } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import Loader from "../components/Loader";
+import SeasonSelect from "../components/SeasonSelect";
+import { fetchFootballApi } from "../api/football";
+import { readCache, writeCache } from "../utils/cache";
+import { CURRENT_SEASON } from "../data/seasons";
 import "../css/teamstats.css";
-import '../css/api-football.css';
-import { useParams, useNavigate } from 'react-router-dom';
+
+const dash = (value) => (value === null || value === undefined ? "–" : value);
+
+function sumCardTotals(cards) {
+  if (!cards) return 0;
+  return Object.values(cards).reduce(
+    (total, period) => total + (period?.total || 0),
+    0
+  );
+}
+
+function FormBadges({ form }) {
+  if (!form) {
+    return <span style={{ color: "var(--text-muted)", fontSize: "0.78rem" }}>No recent form</span>;
+  }
+
+  // The API returns the full season's form (up to 38 matches). Showing all of
+  // them overflows the banner, so keep the five most recent results.
+  const recentForm = form.slice(-5);
+
+  return (
+    <div className="form-badges" aria-label={`Recent form: ${recentForm.split("").join(" ")}`}>
+      {recentForm.split("").map((result, index) => (
+        <span
+          key={`${result}-${index}`}
+          className={`form-badge ${
+            result === "W" ? "badge-win" : result === "D" ? "badge-draw" : "badge-loss"
+          }`}
+        >
+          {result}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 function Teamstats() {
-    const apiKey = process.env.REACT_APP_API_KEY;
-    const { leagueid, newSeason, teamId } = useParams();  // Extract URL parameters
-    const navigate = useNavigate();
-    
-    const [season, setSeason] = useState("2024");  // Default season
-    const [stats, setStats] = useState(null);  // Store API response
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-   
-    const selectedSeason = newSeason || season;
+  const { leagueid, newSeason, teamId } = useParams();
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchStats = async () => {
-            const cacheKey = `${teamId}-${leagueid}-${selectedSeason}`;
-            const cachedStats = sessionStorage.getItem(cacheKey);
-    
-            if (cachedStats) {
-                setStats(JSON.parse(cachedStats));
-                setLoading(false);
-                return; 
-            }
-    
-            setLoading(true);
-            setError(null);
-    
-            try {
-                const response = await fetch(
-                    `https://v3.football.api-sports.io/teams/statistics?league=${leagueid}&season=${selectedSeason}&team=${teamId}`, 
-                    {
-                        method: "GET",
-                        headers: {
-                            "x-apisports-key": apiKey
-                        }
-                    }
-                );
-    
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-    
-                const data = await response.json();
-                sessionStorage.setItem(cacheKey, JSON.stringify(data.response)); // Store in sessionStorage
-                setStats(data.response);
-                if (Object.keys(data.errors).length > 0) {
-                    console.log("Errors found: ");
-                    for (const [key, value] of Object.entries(data.errors)) {
-                        console.log(`${key}: ${value}`);
-                    }
-                  }
-            } catch (err) {
-                console.error("Failed too fetch stats ",err);
-                setError(error.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-    
-        fetchStats();
-        // eslint-disable-next-line
-    }, [newSeason, leagueid, teamId]);        
+  const selectedSeason = newSeason || CURRENT_SEASON;
 
-    // Handle season change
-    const handleSeasonChange = (event) => {
-        const selectedSeason = event.target.value;
-        setSeason(selectedSeason);
-        navigate(`/team-stats/${leagueid}/${selectedSeason}/${teamId}`, { replace: true });
-    };    
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  useEffect(() => {
+    const cacheKey = `team-stats-${teamId}-${leagueid}-${selectedSeason}`;
+    const cached = readCache(cacheKey);
+
+    if (cached) {
+      setStats(cached);
+      setError(null);
+      setLoading(false);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    let cancelled = false;
+
+    setLoading(true);
+    setError(null);
+
+    (async () => {
+      try {
+        const data = await fetchFootballApi(
+          `/teams/statistics?league=${leagueid}&season=${selectedSeason}&team=${teamId}`,
+          { signal: controller.signal }
+        );
+
+        if (cancelled) return;
+
+        setStats(data || null);
+        if (data) writeCache(cacheKey, data);
+      } catch (err) {
+        if (cancelled || err.name === "AbortError") return;
+        setStats(null);
+        setError(err.message || "Failed to fetch team statistics.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [leagueid, teamId, selectedSeason]);
+
+  const handleSeasonChange = (event) => {
+    const nextSeason = event.target.value;
+    navigate(`/team-stats/${leagueid}/${nextSeason}/${teamId}`, { replace: true });
+  };
+
+  if (loading) return <Loader label="Loading team statistics…" />;
+
+  if (error) {
     return (
-        <div>
-            <Header />
-
-            {loading && <div className="loader"></div>}
-            {error && <p style={{ color: "red", marginLeft: "20px", fontSize: "larger" }}>{error}</p>}
-
-            {stats?.fixtures && (
-                
-                <div style={{width: "80%", margin: "0 auto"}}>
-                    <div className="sl" style={{ position: 'absolute', top: '108px', right: '175px', zIndex: '1' }}>
-                <label htmlFor="season-select">Season:</label>
-                <select id="season-select"  value={season} onChange={handleSeasonChange}>
-                    <option value="2024">2024</option>
-                    <option value="2023">2023</option>
-                    <option value="2022">2022</option>
-                </select>
-                </div>
-                <div  style={{ position: 'absolute', top: '110px', left: '180px', zIndex: '1' }}>
-                    <span className="vti" onClick={() => navigate(`/team-info/${teamId}`)}>View Team Info</span>
-                </div>
-                <br/>
-                    <table style={{ width: "100%" }}>
-                    <thead>
-                        <tr>
-                        <td className="wg_header wg_text_center" colSpan="4" style={{borderRadius: "20px 20px 0px 0px"}}>
-                            <img className="wg_flag" alt={`${stats.team?.name} logo`} src={stats.team?.logo}/> 
-                            {stats.team?.name}
-                        </td>
-                        </tr>
-                        <tr>
-                        <td className="wg_text_center" colSpan="4" height="70px">
-                            League Season Form:<pre></pre>
-                            {(stats.form ?? "").split("").map((char, index) => (
-                            <span 
-                                key={index} 
-                                className={`wg_form ${char === "W" ? "wg_form_win" : char === "D" ? "wg_form_draw" : "wg_form_lose"}`}
-                            >
-                                {char}
-                            </span>
-                            ))}
-                        </td>
-                        </tr>
-                    </thead>
-                    
-                    <tbody>
-                        <tr className="wg_header" height="40px">
-                        <th className="wg_text_center">
-                            <img className="wg_flag mg" alt={stats.league?.country} src={stats.league?.logo}/> 
-                            {stats.league?.name}
-                        </th>
-                        <th className="wg_text_center">HOME</th>
-                        <th className="wg_text_center">AWAY</th>
-                        <th className="wg_text_center">ALL</th>
-                        </tr>
-                        
-                        <tr>
-                        <td className="wg_text_left">Games Played</td>
-                        <td className="wg_text_center">{stats.fixtures.played.home}</td>
-                        <td className="wg_text_center">{stats.fixtures.played.away}</td>
-                        <td className="wg_text_center">{stats.fixtures.played.total}</td>
-                        </tr>
-                        
-                        <tr>
-                        <td className="wg_text_left">Wins</td>
-                        <td className="wg_text_center">{stats.fixtures.wins.home}</td>
-                        <td className="wg_text_center">{stats.fixtures.wins.away}</td>
-                        <td className="wg_text_center">{stats.fixtures.wins.total}</td>
-                        </tr>
-                        <tr>
-                            <td className="wg_text_left">Draws</td>
-                            <td className="wg_text_center">{stats.fixtures.draws.home}</td>
-                            <td className="wg_text_center">{stats.fixtures.draws.away}</td>
-                            <td className="wg_text_center">{stats.fixtures.draws.total}</td>
-                        </tr>
-                        <tr>
-                            <td className="wg_text_left">Losses</td>
-                            <td className="wg_text_center">{stats.fixtures.loses.home}</td>
-                            <td className="wg_text_center">{stats.fixtures.loses.away}</td>
-                            <td className="wg_text_center">{stats.fixtures.loses.total}</td>
-                        </tr>
-                        <tr>
-                            <td className="wg_text_left wg_bolder wg_header" colSpan="4">GOALS</td>
-                        </tr>
-                        <tr>
-                            <td className="wg_text_left">Goals For</td>
-                            <td className="wg_text_center">{stats.goals.for.total.home}</td>
-                            <td className="wg_text_center">{stats.goals.for.total.away}</td>
-                            <td className="wg_text_center">{stats.goals.for.total.total}</td>
-                        </tr>
-                        <tr>
-                            <td className="wg_text_left">Goals For Average</td>
-                            <td className="wg_text_center">{stats.goals.for.average.home}</td>
-                            <td className="wg_text_center">{stats.goals.for.average.away}</td>
-                            <td className="wg_text_center">{stats.goals.for.average.total}</td>
-                        </tr>
-                        <tr>
-                            <td className="wg_text_left">Goals Against</td>
-                            <td className="wg_text_center">{stats.goals.against.total.home}</td>
-                            <td className="wg_text_center">{stats.goals.against.total.away}</td>
-                            <td className="wg_text_center">{stats.goals.against.total.total}</td>
-                        </tr>
-                        <tr>
-                            <td className="wg_text_left">Goals Against Average</td>
-                            <td className="wg_text_center">{stats.goals.against.average.home}</td>
-                            <td className="wg_text_center">{stats.goals.against.average.away}</td>
-                            <td className="wg_text_center">{stats.goals.against.average.total}</td>
-                        </tr>
-                        <tr>
-                            <td className="wg_text_left" colSpan="3">Penalties Scored</td>
-                            <td className="wg_text_center">{stats.penalty.scored.total}</td>
-                        </tr>
-                        <tr>
-                            <td className="wg_text_left" colSpan="3">Penalties Missed</td>
-                            <td className="wg_text_center">{stats.penalty.missed.total}</td>
-                        </tr>
-                        <tr>
-                            <td className="wg_text_left">Failed to Score</td>
-                            <td className="wg_text_center">{stats.failed_to_score.home}</td>
-                            <td className="wg_text_center">{stats.failed_to_score.away}</td>
-                            <td className="wg_text_center">{stats.failed_to_score.total}</td>
-                        </tr>
-                        <tr>
-                            <td className="wg_text_left">Clean Sheets</td>
-                            <td className="wg_text_center">{stats.clean_sheet.home}</td>
-                            <td className="wg_text_center">{stats.clean_sheet.away}</td>
-                            <td className="wg_text_center">{stats.clean_sheet.total}</td>
-                        </tr>
-                        <tr>
-                            <td className="wg_text_left wg_bolder wg_header" colSpan="4">CARDS</td>
-                        </tr>
-                        <tr>
-                            <td className="wg_text_left" colSpan="3">Yellow Cards</td>
-                            <td className="wg_text_center">
-                            {Object.values(stats.cards.yellow)
-                            .map(period => period.total)
-                            .filter(total => total !== null)
-                            .reduce((sum, num) => sum + num, 0)
-                            }
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className="wg_text_left" colSpan="3">Red Cards</td>
-                            <td className="wg_text_center">
-                            {Object.values(stats.cards.red)
-                            .map(period => period.total)
-                            .filter(total => total !== null)
-                            .reduce((sum, num) => sum + num, 0)
-                            }
-                            </td>
-                        </tr>
-                    </tbody>
-                    </table>
-
-                </div>
-            )}
+      <div>
+        <div className="alert" role="alert">
+          <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+          <span>{error}</span>
         </div>
+        <div className="flex-center" style={{ marginTop: "1rem" }}>
+          <Link to="/teams" className="btn-secondary">
+            <i className="fa-solid fa-arrow-left" aria-hidden="true" />
+            Back to team search
+          </Link>
+        </div>
+      </div>
     );
+  }
+
+  if (!stats?.fixtures) {
+    return (
+      <div className="empty-state">
+        No statistics are available for this team in season {selectedSeason}.
+      </div>
+    );
+  }
+
+  const { team, league, fixtures, goals, penalty, failed_to_score, clean_sheet, cards, form } =
+    stats;
+
+  return (
+    <div className="team-page">
+      <div className="page-header-row">
+        <div className="league-identity">
+          {team?.logo && <img src={team.logo} alt="" className="league-identity-logo" />}
+          <div>
+            <h1>{team?.name || "Team"}</h1>
+            <p>
+              {league?.name || "League"} · Season {selectedSeason}
+            </p>
+          </div>
+        </div>
+
+        <div className="team-actions">
+          <SeasonSelect value={selectedSeason} onChange={handleSeasonChange} />
+          <Link to={`/team-info/${teamId}`} className="btn-secondary">
+            <i className="fa-solid fa-circle-info" aria-hidden="true" />
+            Team info
+          </Link>
+        </div>
+      </div>
+
+      <div className="table-card">
+        <div className="league-banner">
+          {league?.logo && <img src={league.logo} alt="" loading="lazy" />}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h2>{league?.name || "League"}</h2>
+            <p>
+              {league?.country || "Season"} · {selectedSeason}
+            </p>
+          </div>
+          <FormBadges form={form} />
+        </div>
+
+        <div className="table-scroll">
+          <table className="stats-table">
+            <thead>
+              <tr>
+                <th>Statistic</th>
+                <th className="num">Home</th>
+                <th className="num">Away</th>
+                <th className="num">All</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr className="table-section-row">
+                <td colSpan="4">Results</td>
+              </tr>
+              {[
+                ["Games played", fixtures.played],
+                ["Wins", fixtures.wins],
+                ["Draws", fixtures.draws],
+                ["Losses", fixtures.loses],
+              ].map(([label, values]) => (
+                <tr key={label}>
+                  <td>{label}</td>
+                  <td className="num">{dash(values?.home)}</td>
+                  <td className="num">{dash(values?.away)}</td>
+                  <td className="num">{dash(values?.total)}</td>
+                </tr>
+              ))}
+
+              <tr className="table-section-row">
+                <td colSpan="4">Goals</td>
+              </tr>
+              {[
+                ["Goals for", goals?.for?.total],
+                ["Goals for average", goals?.for?.average],
+                ["Goals against", goals?.against?.total],
+                ["Goals against average", goals?.against?.average],
+              ].map(([label, values]) => (
+                <tr key={label}>
+                  <td>{label}</td>
+                  <td className="num">{dash(values?.home)}</td>
+                  <td className="num">{dash(values?.away)}</td>
+                  <td className="num">{dash(values?.total)}</td>
+                </tr>
+              ))}
+              <tr>
+                <td>Failed to score</td>
+                <td className="num">{dash(failed_to_score?.home)}</td>
+                <td className="num">{dash(failed_to_score?.away)}</td>
+                <td className="num">{dash(failed_to_score?.total)}</td>
+              </tr>
+              <tr>
+                <td>Clean sheets</td>
+                <td className="num">{dash(clean_sheet?.home)}</td>
+                <td className="num">{dash(clean_sheet?.away)}</td>
+                <td className="num">{dash(clean_sheet?.total)}</td>
+              </tr>
+
+              <tr className="table-section-row">
+                <td colSpan="4">Penalties &amp; discipline</td>
+              </tr>
+              <tr>
+                <td>Penalties scored</td>
+                <td className="num" colSpan="3">
+                  {dash(penalty?.scored?.total)}
+                </td>
+              </tr>
+              <tr>
+                <td>Penalties missed</td>
+                <td className="num" colSpan="3">
+                  {dash(penalty?.missed?.total)}
+                </td>
+              </tr>
+              <tr>
+                <td>Yellow cards</td>
+                <td className="num" colSpan="3">
+                  {sumCardTotals(cards?.yellow)}
+                </td>
+              </tr>
+              <tr>
+                <td>Red cards</td>
+                <td className="num" colSpan="3">
+                  {sumCardTotals(cards?.red)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default Teamstats;

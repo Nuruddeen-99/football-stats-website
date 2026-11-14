@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout";
 import Home from "./pages/home";
-import Fixtures from './pages/fixtures';
+import Fixtures from "./pages/fixtures";
 import StandingsLayout from "./pages/standingslayout";
 import Standings from "./pages/standings";
 import Goals from "./pages/goals";
@@ -13,26 +14,33 @@ import TeamInfo from "./pages/teaminfo";
 import Players from "./pages/players";
 import Playerstats from "./pages/playerstats";
 import CoachStats from "./pages/coachstats";
+import NotFound from "./pages/NotFound";
 
 const AppRoutes = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/fixtures" element={<Fixtures />} />
-        <Route path="/standings/:id/:season?" element={<StandingsLayout />}>
-          <Route index element={<Standings />} />
-          <Route path="goals" element={<Goals />} />
-          <Route path="assists" element={<Assists />} />
-          <Route path="yellow-cards" element={<YellowCards />} />
-          <Route path="red-cards" element={<RedCards />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="fixtures" element={<Fixtures />} />
+
+          <Route path="standings/:id/:season?" element={<StandingsLayout />}>
+            <Route index element={<Standings />} />
+            <Route path="goals" element={<Goals />} />
+            <Route path="assists" element={<Assists />} />
+            <Route path="yellow-cards" element={<YellowCards />} />
+            <Route path="red-cards" element={<RedCards />} />
+          </Route>
+
+          <Route path="teams" element={<Teams />} />
+          <Route path="team-stats/:leagueid/:newSeason?/:teamId" element={<Teamstats />} />
+          <Route path="team-info/:teamId" element={<TeamInfo />} />
+          <Route path="players" element={<Players />} />
+          <Route path="player-stats/:playerId/:newSeason?" element={<Playerstats />} />
+          <Route path="coach-stats/:coachId" element={<CoachStats />} />
+
+          <Route path="*" element={<NotFound />} />
         </Route>
-        <Route path="/teams" element={<Teams />} />
-        <Route path="/team-stats/:leagueid/:newSeason?/:teamId" element={<Teamstats />} />
-        <Route path="/team-info/:teamId" element={<TeamInfo />} />
-        <Route path="/players" element={<Players />} />
-        <Route path="/player-stats/:playerId/:newSeason?" element={<Playerstats />} />
-        <Route path="/coach-stats/:coachId" element={<CoachStats />} />
       </Routes>
     </Router>
   );

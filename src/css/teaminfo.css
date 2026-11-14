@@ -1,58 +1,74 @@
-.team-p {
-    width: 78%;
-    margin: 0 auto;
-  }
-  .p-group h2 {
-    background-color: #222;
-    color: white;
-    padding: 10px;
-    text-align: center;
-  }
-  .p-title{
-    background-color: rgb(0,8,10);
-    color: white;
-    height: 12px; font-size: medium;
-  }
+/* Team information page */
+.team-page {
+  max-width: 100%;
+}
 
-  .tb{
-    width: 100%;
-    overflow: hidden; border-spacing: 0px;
-    border-radius: 10px;
-  }
-  
-  th, td {
-    padding: 6px;
-    text-align: left;
-    vertical-align: middle;
-  }
-  .p-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: background-color 0.3s;
-  }
-  .p-info:hover {
-    background-color: #122a3d;
-    cursor: pointer;
-  }
-  .p-img {
-    width: 45px;
-    height: 45px;
-    border-radius: 40%;
-  }
-  
-  .p-details {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .p-name {
-    font-weight: bold;
-  }
-  
-  .p-meta {
-    font-size: 12px;
-    margin-top: 5px;
-    color: gray;
-  }
-  
+.stadium-card {
+  margin: 0;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+}
+
+.stadium-card img {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+}
+
+.section-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  margin-left: 0.5rem;
+  padding: 0 0.45rem;
+  border-radius: var(--border-radius-full);
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  font-size: 0.72rem;
+  vertical-align: middle;
+}
+
+.person-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1.1rem;
+  color: inherit;
+  transition: background-color 0.15s ease;
+}
+
+.person-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.person-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.person-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.person-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.person-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}

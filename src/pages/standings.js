@@ -1,16 +1,12 @@
-import { useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import ApiSportsWidget from "../components/ApiSportsWidget";
+import { CURRENT_SEASON } from "../data/seasons";
 
 function Standings() {
   const apiKey = process.env.REACT_APP_API_KEY;
   const { id, season } = useParams();
-  const navigate = useNavigate();
-    
-  useEffect(() => {
-    if (!season) {
-      navigate(`/standings/${id}/2024`, { replace: true });
-    }
-  }, [season, id, navigate]);
+
+  const currentSeason = season || CURRENT_SEASON;
 
   return (
     <>
@@ -19,17 +15,22 @@ function Standings() {
         data-key={apiKey}
         data-sport="football"
         data-lang="en"
-        data-theme="dark"
+        data-theme="blue"
         data-show-logos="true"
-        data-show-errors="true"
-      ></api-sports-widget>
-
-      <api-sports-widget
-        data-type="standings"
-        key={`${id}-${season}`}
-        data-league={id}
-        data-season={season}
+        data-show-error="true"
         data-target-team="modal"
+      />
+
+      <ApiSportsWidget
+        key={`${id}-${currentSeason}`}
+        label="Loading standings…"
+        attributes={{
+          "data-type": "standings",
+          id: "wg-api-football-standings",
+          "data-league": id,
+          "data-season": currentSeason,
+          "data-target-team": "modal",
+        }}
       />
     </>
   );

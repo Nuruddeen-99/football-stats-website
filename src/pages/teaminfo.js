@@ -1,267 +1,262 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import Header from "../components/header";
+import { Fragment, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import Loader from "../components/Loader";
+import { fetchFootballApi } from "../api/football";
+import { getFlagForCountry } from "../utils/flags";
+import { readCache, writeCache } from "../utils/cache";
 import "../css/teaminfo.css";
 
+const POSITION_ORDER = ["Goalkeeper", "Defender", "Midfielder", "Attacker"];
+
+const dash = (value) =>
+  value === null || value === undefined || value === "" ? "–" : value;
+
 function TeamInfo() {
-  const apiKey = process.env.REACT_APP_API_KEY;
   const { teamId } = useParams();
-  const [teamData, setTeamData] = useState(null);
-  const [teamCoach, setTeamCoach] = useState(null);
+  const [team, setTeam] = useState(null);
+  const [coach, setCoach] = useState(null);
   const [players, setPlayers] = useState([]);
   const [flag, setFlag] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
-  
-    const fetchTeamInfo = async () => {
-        try {
-          const cachedTeamData = sessionStorage.getItem(`teamData-${teamId}`);
-          if (cachedTeamData) {
-              setTeamData(JSON.parse(cachedTeamData));
-              const countryCode = await getCountryCode(JSON.parse(cachedTeamData)?.team?.country);
-              setFlag(getFlagUrl(countryCode));
-              setLoading(false);
-              return;
-          }
-            const response = await fetch(`https://v3.football.api-sports.io/teams?id=${teamId}`, {
-                method: "GET",
-                headers: { 'x-apisports-key': apiKey }
-            });
-            const data = await response.json();
-            if (data.response.length > 0) {
-                const teamData = data.response[0];
-                setTeamData(teamData);
-                const countryCode = await getCountryCode(teamData?.team?.country);
-                setFlag(getFlagUrl(countryCode));
-                sessionStorage.setItem(`teamData-${teamId}`, JSON.stringify(teamData));
-            }
-            if (Object.keys(data.errors).length > 0) {
-              console.log("Errors found: ");
-              for (const [key, value] of Object.entries(data.errors)) {
-                  console.log(`${key}: ${value}`);
-              }
-            }
-        } catch (err) {
-            console.error(err);
-            setError("Failed to fetch team info");
-        } finally {
-            setLoading(false);
+    const controller = new AbortController();
+    let cancelled = false;
+
+    setLoading(true);
+    setError(null);
+
+    (async () => {
+      try {
+        const teamKey = `team-info-${teamId}`;
+        const coachKey = `team-coach-${teamId}`;
+        const squadKey = `team-squad-${teamId}`;
+
+        const cachedTeam = readCache(teamKey);
+        const cachedCoach = readCache(coachKey);
+        const cachedSquad = readCache(squadKey);
+
+        const settled = await Promise.allSettled([
+          cachedTeam
+            ? Promise.resolve(cachedTeam)
+            : fetchFootballApi(`/teams?id=${teamId}`, {
+                signal: controller.signal,
+              }).then((response) => response?.[0] || null),
+          cachedCoach
+            ? Promise.resolve(cachedCoach)
+            : fetchFootballApi(`/coachs?team=${teamId}`, {
+                signal: controller.signal,
+              }).then((response) => response?.[0] || null),
+          cachedSquad
+            ? Promise.resolve(cachedSquad)
+            : fetchFootballApi(`/players/squads?team=${teamId}`, {
+                signal: controller.signal,
+              }).then((response) => response?.[0]?.players || []),
+        ]);
+
+        if (cancelled) return;
+
+        const valueOf = (result, fallback) =>
+          result.status === "fulfilled" ? result.value : fallback;
+
+        const teamData = valueOf(settled[0], null);
+        const coachData = valueOf(settled[1], null);
+        const squadData = valueOf(settled[2], []);
+
+        if (!teamData) {
+          const reason = settled[0].reason;
+          setError(
+            reason?.name === "AbortError"
+              ? null
+              : reason?.message || "This team could not be found."
+          );
+          return;
         }
+
+        if (!cachedTeam) writeCache(teamKey, teamData);
+        if (!cachedCoach && coachData) writeCache(coachKey, coachData);
+        if (!cachedSquad) writeCache(squadKey, squadData);
+
+        setTeam(teamData);
+        setCoach(coachData);
+        setPlayers(Array.isArray(squadData) ? squadData : []);
+
+        const countryFlag = await getFlagForCountry(teamData?.team?.country);
+        if (!cancelled) setFlag(countryFlag);
+      } catch (err) {
+        if (cancelled || err.name === "AbortError") return;
+        setError(err.message || "Failed to fetch team information.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
     };
-    fetchTeamInfo();//eslint-disable-next-line
-}, [teamId]); 
+  }, [teamId]);
 
-useEffect(() => {
-  const cachedCoachData = sessionStorage.getItem(`teamCoach-${teamId}`);
-  if (cachedCoachData) {
-      setTeamCoach(JSON.parse(cachedCoachData));
-      setLoading(false);
-      return;
+  if (loading) return <Loader label="Loading team information…" />;
+
+  if (error) {
+    return (
+      <div>
+        <div className="alert" role="alert">
+          <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+          <span>{error}</span>
+        </div>
+        <div className="flex-center" style={{ marginTop: "1rem" }}>
+          <Link to="/teams" className="btn-secondary">
+            <i className="fa-solid fa-arrow-left" aria-hidden="true" />
+            Back to team search
+          </Link>
+        </div>
+      </div>
+    );
   }
 
-  const fetchTeamCoach = async () => {
-      try {
-          const response = await fetch(`https://v3.football.api-sports.io/coachs?team=${teamId}`, {
-              method: "GET",
-              headers: { 'x-apisports-key': apiKey }
-          });
-          const data = await response.json();
-          if (data.response.length > 0) {
-              setTeamCoach(data.response[0]);
-              sessionStorage.setItem(`teamCoach-${teamId}`, JSON.stringify(data.response[0]));
-          }
-          if (Object.keys(data.errors).length > 0) {
-            console.log("Errors found: ");
-            for (const [key, value] of Object.entries(data.errors)) {
-                console.log(`${key}: ${value}`);
-            }
-          }
-      } catch (err) {
-          console.error(err);
-          setError("Failed to fetch coach info");
-      } finally {
-          setLoading(false);
-      }
-  };
-  fetchTeamCoach();//eslint-disable-next-line
-}, [teamId]); 
+  if (!team) return null;
 
-useEffect(() => {
-  const cachedPlayersData = sessionStorage.getItem(`players-${teamId}`);
-  if (cachedPlayersData) {
-      setPlayers(JSON.parse(cachedPlayersData));
-      setLoading(false);
-      return;
-  }
-
-  const fetchPlayers = async () => {
-      try {
-          const response = await fetch(`https://v3.football.api-sports.io/players/squads?team=${teamId}`, {
-              method: "GET",
-              headers: { 'x-apisports-key': apiKey }
-          });
-          const data = await response.json();
-          if (data.response.length > 0) {
-              const reversedPlayers = data.response[0].players.reverse() || [];
-              setPlayers(reversedPlayers);
-              sessionStorage.setItem(`players-${teamId}`, JSON.stringify(reversedPlayers));
-          }
-          if (Object.keys(data.errors).length > 0) {
-            console.log("Errors found: ");
-            for (const [key, value] of Object.entries(data.errors)) {
-                console.log(`${key}: ${value}`);
-            }
-          }
-      } catch (err) {
-        console.error(err);
-          setError("Failed to fetch players");
-      } finally {
-          setLoading(false);
-      }
-  };
-  fetchPlayers();//eslint-disable-next-line
-}, [teamId]); 
-
-const getCountryCode = async (countryName) => {
-  if (countryName.toLowerCase() === "england"){
-      return "gb-eng";
-  } else if (countryName.toLowerCase() === "europe"){
-      return "eur";
-  } else if (countryName.toLowerCase() === "world"){
-      return "world";
-  } else if(countryName.toLowerCase() === "south-america"){
-      return "sam";
-  } else if (countryName.toLowerCase() === "africa"){
-      return "afr";
-  } else if (countryName.toLowerCase() === "nc-america"){
-      return "ncam";
-  } else if (countryName.toLowerCase() === "asia"){
-      return "asia";
-  }
-  try {
-      const response = await fetch(`https://restcountries.com/v3.1/name/${countryName}?fields=cca2`);
-      const data = await response.json();
-      return data[0]?.cca2.toLowerCase(); // Convert to lowercase for API-FOOTBALL
-  } catch (error) {
-      console.error(`Error fetching country code for ${countryName}:`, error);
-      return null;
-  }
-};
-
-const getFlagUrl = (countryCode) => {
-  if (countryCode === "eur"){
-      return `/logos/uefa.png`;
-  } else if (countryCode === "world"){
-      return `/logos/world.png`;
-  } else if (countryCode === "sam"){
-      return `/logos/conmebol.png`;
-  } else if (countryCode === "afr"){
-      return `/logos/caf.png`;
-  } else if (countryCode === "ncam"){
-      return `/logos/concacaf.png`;
-  } else if (countryCode === "asia"){
-      return `/logos/afc.png`;
-  } else {
-      return `https://media.api-sports.io/flags/${countryCode}.svg`
-  }
-};
-
-function playerClick(id) {
-    navigate(`/player-stats/${id}`);
-  }
-function coachClick(id) {
-    navigate(`/coach-stats/${id}`);
-  }
+  const squadSections = POSITION_ORDER.map((position) => ({
+    position,
+    players: players.filter((player) => player.position === position),
+  })).filter((section) => section.players.length > 0);
 
   return (
-    <div>
-      <Header />
-      {loading ? (
-                <div className="loader"></div>
-            ) : error ? (
-                <p style={{ color: "red", marginLeft: "30px", fontSize: "larger" }}>{error}</p>
-            ) : (
-      <div className="team-p">
-        {teamData && (
-          <>
-            <div className="wg_header wg_text_center" style={{ borderRadius: "0px 0px 15px 15px" }}>
-              <img className="wg_flag" alt={teamData.team.name} src={teamData.team.logo} />
-              {teamData.team.name}
-            </div>
-            <center><img style={{ width: '40%' }} alt="Stadium" src={teamData.venue.image} /></center>
-            <div className="info-grid">
-              <span style={{ gridColumn: "1 / -1", fontWeight: 'bold' }}>Info</span>
-              <div className="info-item"><span className="info-title">Founded in</span><span className="info-value">{teamData.team.founded}</span></div>
-              <div className="info-item">
-                <span className="info-title">Country</span>
-                <span className="info-value">
-                  {flag && <img src={flag} alt="Country flag" className="wg_flag"/>}
-                  {teamData.team.country}
-                  </span>
-              </div>
-              <div className="info-item"><span className="info-title">City</span><span className="info-value">{teamData.venue.city}</span></div>
-              <div className="info-item"><span className="info-title">Stadium</span><span className="info-value">{teamData.venue.name}</span></div>
-              <div className="info-item"><span className="info-title">Address</span><span className="info-value">{teamData.venue.address}</span></div>
-              <div className="info-item"><span className="info-title">Capacity</span><span className="info-value">{teamData.venue.capacity}</span></div>
-            </div>
-          </>
-        )}
-        <br />
-        <table className="tb">
-          <tbody>
-          <tr className="position-row">
-            <td className="p-title">Coach</td>
-          </tr>
-          {teamCoach && (
-            <tr>
-              <td className="p-info" onClick={() => coachClick(teamCoach.id)}>
-                <img src={teamCoach.photo} alt="Coach" className="p-img" />
-                <div className="p-details">
-                  <span className="p-name">{teamCoach.name}</span>
-                  <span className="p-meta"> Age  {teamCoach.age} &nbsp;&nbsp; {teamCoach.nationality}</span>
-                </div>
-              </td>
-            </tr>
-          )}
-          </tbody>
-        </table>
-        <br />
-        <table className="tb">
-        <thead>
-          <tr className="wg_header">
-            <th colSpan="4" className="wg_text_center">Players</th>
-          </tr>
-        </thead>
-        <tbody>
-          {["Attacker", "Midfielder", "Defender", "Goalkeeper"].map(position => (
-            players.some(player => player.position === position) && (
-              <React.Fragment key={position}>
-                <tr className="position-row">
-                  <td colSpan="4" className="p-title">{position + "s"}</td>
-                </tr>
-                {players
-                  .filter(player => player.position === position)
-                  .map(player => (
-                    <tr key={player.id} style={{ backgroundColor: '#00141e' }}>
-                      <td className="p-info" onClick={() => playerClick(player.id)}>
-                        <img src={player.photo} alt={player.name} className="p-img" loading="lazy"/>
-                        <div className="p-details">
-                          <span className="p-name">{player.name}</span>
-                          <span className="p-meta">No.{player.number || '-'} &nbsp;&nbsp;&nbsp; Age {player.age} &nbsp;</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-              </React.Fragment>
-            )
-          ))}
-        </tbody>
-      </table>
-        <br />
+    <div className="team-page">
+      <div className="page-header-row">
+        <div className="league-identity">
+          <img src={team.team.logo} alt="" className="league-identity-logo" />
+          <div>
+            <h1>{team.team.name}</h1>
+            <p>
+              {team.team.country || "Club"} · Founded {dash(team.team.founded)}
+            </p>
+          </div>
+        </div>
       </div>
+
+      <div className="info-grid" style={{ marginBottom: "1.5rem" }}>
+        <div className="info-card">
+          <span className="info-title">Country</span>
+          <span className="info-value">
+            {flag && <img src={flag} alt="" loading="lazy" />}
+            {dash(team.team.country)}
+          </span>
+        </div>
+        <div className="info-card">
+          <span className="info-title">Founded</span>
+          <span className="info-value">{dash(team.team.founded)}</span>
+        </div>
+        <div className="info-card">
+          <span className="info-title">City</span>
+          <span className="info-value">{dash(team.venue?.city)}</span>
+        </div>
+        <div className="info-card">
+          <span className="info-title">Stadium</span>
+          <span className="info-value">{dash(team.venue?.name)}</span>
+        </div>
+        <div className="info-card">
+          <span className="info-title">Capacity</span>
+          <span className="info-value">
+            {team.venue?.capacity ? team.venue.capacity.toLocaleString("en-GB") : "–"}
+          </span>
+        </div>
+        <div className="info-card">
+          <span className="info-title">Address</span>
+          <span className="info-value">{dash(team.venue?.address)}</span>
+        </div>
+      </div>
+
+      {team.venue?.image && (
+        <figure className="stadium-card">
+          <img
+            src={team.venue.image}
+            alt={`${team.venue.name || "Stadium"} exterior`}
+            loading="lazy"
+          />
+        </figure>
+      )}
+
+      <h2 className="section-title" style={{ marginTop: "1.5rem" }}>
+        Coach
+      </h2>
+      {coach ? (
+        <div className="table-card" style={{ borderRadius: "0 0 12px 12px" }}>
+          <Link to={`/coach-stats/${coach.id}`} className="person-row">
+            <img
+              src={coach.photo || "/logos/defaultimg.png"}
+              alt=""
+              className="person-image"
+              loading="lazy"
+            />
+            <div className="person-details">
+              <span className="person-name">{coach.name}</span>
+              <span className="person-meta">
+                {coach.age ? `Age ${coach.age}` : "Age unknown"} ·{" "}
+                {coach.nationality || "Nationality unknown"}
+              </span>
+            </div>
+            <i className="fa-solid fa-chevron-right entity-chevron" aria-hidden="true" />
+          </Link>
+        </div>
+      ) : (
+        <div className="empty-state" style={{ borderRadius: "0 0 12px 12px" }}>
+          No coach information available.
+        </div>
+      )}
+
+      <h2 className="section-title" style={{ marginTop: "1.5rem" }}>
+        Squad {players.length > 0 && <span className="section-count">{players.length}</span>}
+      </h2>
+      {squadSections.length > 0 ? (
+        <div className="table-card" style={{ borderRadius: "0 0 12px 12px" }}>
+          <div className="table-scroll">
+            <table className="stats-table">
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  <th className="num hide-sm">Number</th>
+                  <th className="num">Age</th>
+                </tr>
+              </thead>
+              <tbody>
+                {squadSections.map((section) => (
+                  <Fragment key={section.position}>
+                    <tr className="table-section-row">
+                      <td colSpan="3">{section.position}s</td>
+                    </tr>
+                    {section.players.map((player) => (
+                      <tr key={player.id}>
+                        <td>
+                          <Link
+                            to={`/player-stats/${player.id}`}
+                            className="table-link table-player-cell"
+                          >
+                            <img
+                              src={player.photo || "/logos/defaultimg.png"}
+                              alt=""
+                              loading="lazy"
+                            />
+                            <span>{player.name}</span>
+                          </Link>
+                        </td>
+                        <td className="num hide-sm">{dash(player.number)}</td>
+                        <td className="num">{dash(player.age)}</td>
+                      </tr>
+                    ))}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div className="empty-state" style={{ borderRadius: "0 0 12px 12px" }}>
+          No squad information available.
+        </div>
       )}
     </div>
   );

@@ -1,31 +1,38 @@
-.loader {
-  position: fixed;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -65%);
+/* Team season statistics page */
+.form-badges {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  margin-left: auto;
 }
-.vti{
-  cursor: pointer; border: 0.5px lightgray solid; 
-  padding: 10px; color:white; border-radius: 14px;
-  background-color: #121212; font-size: 14px;
-} .vti:hover{ background-color: #002b41;}
-.mg{padding: 5px; background-color: white; border-radius: 6px; width: 50px;} 
 
-  .loader:after { 
-    content: " ";
-    width: 45px;
-    height: 45px;
-    margin-top: 200px;
-    border-radius: 50%;
-    border: 6px solid var(--color-green);
-    border-color: var(--color-green) transparent var(--color-green) transparent;
-    animation: ring 1.2s linear infinite; 
+.form-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--border-radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* Stats table first column should stay readable next to the numbers */
+.team-page .stats-table td:first-child {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .form-badges {
+    margin-left: 0;
+    flex-basis: 100%;
+    justify-content: flex-start;
   }
-  
-  @keyframes ring { 
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+
+  .form-badge {
+    width: 21px;
+    height: 21px;
+    font-size: 0.65rem;
   }
+}

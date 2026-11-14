@@ -1,173 +1,215 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import '../css/players.css';
-import Header from '../components/header';
+import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import Loader from "../components/Loader";
+import { fetchFootballApi } from "../api/football";
+import { getFlagForCountry } from "../utils/flags";
+import { readCache, writeCache } from "../utils/cache";
+import { CURRENT_SEASON } from "../data/seasons";
+import "../css/players.css";
 
-const Players = () => {
-  const apiKey = process.env.REACT_APP_API_KEY;
-  const navigate = useNavigate();
+const MAX_RESULTS = 20;
+
+function matchesSearch(player, query) {
+  const haystack = `${player?.firstname || ""} ${player?.lastname || ""} ${
+    player?.name || ""
+  }`.toLowerCase();
+
+  return query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((part) => haystack.includes(part));
+}
+
+function Players() {
   const [searchTerm, setSearchTerm] = useState("");
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
+  const [searched, setSearched] = useState(false);
+  const requestRef = useRef(0);
 
-  const getCountryCode = async (countryName) => {
-    if (countryName.toLowerCase() === "england") return "gb-eng";
-    try {
-        const response = await fetch(`https://restcountries.com/v3.1/name/${countryName}?fields=cca2`);
-        const data = await response.json();
-        return data[0]?.cca2.toLowerCase(); // Convert to lowercase for API-FOOTBALL
-    } catch (error) {
-        console.error(`Error fetching country code for ${countryName}:`, error);
-        return null;
+  const handleSearch = async (event) => {
+    event.preventDefault();
+
+    const query = searchTerm.trim();
+    if (!query) {
+      requestRef.current += 1;
+      setLoading(false);
+      setPlayers([]);
+      setError(null);
+      setSearched(false);
+      return;
     }
-};
 
-const getFlagUrl = (countryCode) => {
-    return countryCode ? `https://media.api-sports.io/flags/${countryCode}.svg` : null;
-};
+    const cacheKey = `players-search-${query.toLowerCase()}`;
+    const cached = readCache(cacheKey);
 
-  const fetchPlayers = async () => {
-    const cachedPlayers = sessionStorage.getItem(`players_${searchTerm.toLowerCase().trim()}`);
-    if (cachedPlayers) {
-        setPlayers(JSON.parse(cachedPlayers));
-        setLoading(false);
-        return;
+    if (cached) {
+      requestRef.current += 1;
+      setPlayers(cached);
+      setLoading(false);
+      setError(null);
+      setSearched(true);
+      return;
     }
+
+    const requestId = requestRef.current + 1;
+    requestRef.current = requestId;
 
     setLoading(true);
-    setError("");
+    setError(null);
     setPlayers([]);
+    setSearched(true);
 
     try {
-        const response = await fetch(
-            `https://v3.football.api-sports.io/players/profiles?search=${searchTerm}`,
-            {
-                method: "GET",
-                headers: {
-                    "x-rapidapi-host": "v3.football.api-sports.io",
-                    "x-apisports-key": apiKey,
-                },
-            }
-        );
+      const results = await fetchFootballApi(
+        `/players/profiles?search=${encodeURIComponent(query)}`
+      );
 
-        if (!response.ok) throw new Error("Failed to fetch data.");
+      const matched = (results || [])
+        .filter((entry) => entry.player?.id && matchesSearch(entry.player, query))
+        .slice(0, MAX_RESULTS);
 
-        const data = await response.json();
-        if (!data.response || data.response.length === 0) {
-            setError("No players found. Try another name.");
-        } else {
-            const normalizedSearch = searchTerm.toLowerCase().trim();
-            const searchParts = normalizedSearch.split(/\s+/); // Split search term into words
+      const withFlags = await Promise.all(
+        matched.map(async (entry) => ({
+          ...entry,
+          flagUrl: entry.player?.nationality
+            ? await getFlagForCountry(entry.player.nationality)
+            : null,
+        }))
+      );
 
-            const playerWithDetails = await Promise.all(
-                data.response.map(async (Obj) => {
-                    const fullName = `${Obj.player?.firstname || ""} ${Obj.player?.lastname || ""}`.toLowerCase();
-                    const nameParts = fullName.split(/\s+/); // Split player's name into words
+      if (requestRef.current !== requestId) return;
 
-                    // Check if all parts of the search term exist in the player's name (order doesn't matter)
-                    const matches = searchParts.every(part => 
-                        nameParts.some(name => name.includes(part))
-                    );
+      if (!withFlags.length) {
+        setError(`No players found for “${query}”. Try the full name.`);
+        return;
+      }
 
-                    if (!matches) {
-                        return null; // Ignore players who don't match
-                    }
-                    const nationality = Obj.player?.nationality || "";
-                    const countryCode = nationality ? await getCountryCode(nationality) : null;
-                    const flagUrl = getFlagUrl(countryCode);
-
-                    return {
-                        ...Obj,
-                        nationality,
-                        flagUrl,
-                    };
-                })
-            );
-            // Ensure filtering before slicing
-            const filteredPlayers = playerWithDetails.filter((player) => player !== null);
-            sessionStorage.setItem(`players_${searchTerm.toLowerCase().trim()}`, JSON.stringify(filteredPlayers));
-            setPlayers(filteredPlayers);
-
-            if (Object.keys(data.errors).length > 0) {
-              console.log("Errors found: ");
-              for (const [key, value] of Object.entries(data.errors)) {
-                  console.log(`${key}: ${value}`);
-              }
-            }
-        }
+      writeCache(cacheKey, withFlags);
+      setPlayers(withFlags);
     } catch (err) {
-        console.error("Fetch error:", err);
-        setError("Failed to fetch players. Please try again.");
-        setPlayers([]);
+      if (requestRef.current !== requestId) return;
+      setError(err.message || "Failed to fetch players. Please try again.");
+    } finally {
+      if (requestRef.current === requestId) setLoading(false);
     }
-    setLoading(false);
-};
-
-  const handleClick = (playerId) => {
-    navigate(`/player-stats/${playerId}`);
-  }; 
+  };
 
   return (
     <div>
-      <Header />
-      <h2 className="ht">Search for a Player</h2><br/>
-      <input
-        id='search'
-        type="text"
-        placeholder="Enter player name..."
-        title="Enter full name to narrow down search"
-        className="search"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && fetchPlayers()}
-      />
-      <br /><br/>
-      <button className="sbtn" onClick={fetchPlayers}>Search</button>
-      <br /><br />
+      <section className="search-hero">
+        <h1>Find a player</h1>
+        <p>
+          Search by name to see season statistics, transfer history and
+          trophies. Full names give the best results.
+        </p>
+        <form className="search-form-row" onSubmit={handleSearch}>
+          <label htmlFor="player-search" className="sr-only">
+            Player name
+          </label>
+          <input
+            id="player-search"
+            type="search"
+            className="input-search"
+            placeholder="e.g. Mohamed Salah…"
+            title="Enter a full name to narrow down the search"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+          <button type="submit" className="btn-primary">
+            <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
+            Search
+          </button>
+        </form>
+      </section>
 
-      {loading && <div className="loader"></div>}
-      {error && <p style={{ color: "red", marginLeft: "20px", fontSize: "larger" }}>{error}</p>}
-      <br />
+      {loading && <Loader label="Searching for players…" />}
 
-      {/* Display Players */}
-      <div className="players-list-table">
-  {players?.length > 0 ? (
-    players.map((Obj) => (
-      <div
-        key={Obj.player?.id}
-        className="player-row"
-        onClick={() => handleClick(Obj.player?.id)}
-        style={{ cursor: "pointer" }}
-      >
-        <img
-          src={Obj.player?.photo || "/logos/defaultimg.png"}
-          alt={Obj.player?.name}
-          className="player-image"
-        />
-        <span className="playr-name">
-          {Obj.player?.firstname} {Obj.player?.lastname}
-        </span>
-        <span className="player-position">{Obj.player?.position}</span>
-        <span className="player-nationality">
-          {Obj.flagUrl && (
-            <img
-              src={Obj.flagUrl}
-              alt={`${Obj.nationality} flag`}
-              className="country-flag"
-            />
-          )}{" "}
-          {Obj.nationality}
-        </span>
-        <span className="player-age">Age: {Obj.player?.age}</span>
-      </div>
-    ))
-  ) : (
-    <p></p>
-  )}
-</div>
+      {!loading && error && (
+        <div className="alert" role="alert">
+          <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {!loading && !error && players.length > 0 && (
+        <>
+          <div className="results-head">
+            <h2>Results</h2>
+            <span>
+              {players.length} {players.length === 1 ? "player" : "players"}
+            </span>
+          </div>
+
+          <div className="entity-list">
+            {players.map((entry) => {
+              const player = entry.player;
+
+              return (
+                <Link
+                  key={player.id}
+                  to={`/player-stats/${player.id}/${CURRENT_SEASON}`}
+                  className="entity-card"
+                >
+                  <img
+                    src={player.photo || "/logos/defaultimg.png"}
+                    alt=""
+                    className="entity-logo round"
+                    loading="lazy"
+                    onError={(event) => {
+                      event.currentTarget.onerror = null;
+                      event.currentTarget.src = "/logos/defaultimg.png";
+                    }}
+                  />
+                  <div className="entity-main">
+                    <span className="entity-name">
+                      {player.firstname
+                        ? `${player.firstname} ${player.lastname || ""}`.trim()
+                        : player.name}
+                    </span>
+                    <div className="entity-meta">
+                      {player.nationality && (
+                        <span>
+                          {entry.flagUrl && (
+                            <img
+                              src={entry.flagUrl}
+                              alt=""
+                              className="flag"
+                              loading="lazy"
+                            />
+                          )}
+                          {player.nationality}
+                        </span>
+                      )}
+                      {player.age && <span>Age {player.age}</span>}
+                      {player.height && <span>{player.height}</span>}
+                    </div>
+                  </div>
+                  <i
+                    className="fa-solid fa-chevron-right entity-chevron"
+                    aria-hidden="true"
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {!loading && !error && !searched && (
+        <div className="empty-state">
+          <i
+            className="fa-solid fa-user"
+            aria-hidden="true"
+            style={{ fontSize: "1.5rem", marginBottom: "0.5rem", display: "block" }}
+          />
+          Start typing a player name to see results.
+        </div>
+      )}
     </div>
   );
-};
+}
 
 export default Players;
