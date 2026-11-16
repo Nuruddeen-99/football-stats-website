@@ -44,7 +44,7 @@
   --teams-logo-block-radius-modal: 5px;
   --teams-logo-block-background-modal: var(--background-color-header);
 }
-#wg-api-football-games, #wg-api-football-standings{
+#wg-api-football-standings{
   width: 100%; margin: 0 auto;
 }
 
@@ -52,6 +52,7 @@
 .widget-shell {
   position: relative;
   width: 100%;
+  margin: 0 auto;
   min-width: 0;
 }
 

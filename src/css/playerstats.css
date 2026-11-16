@@ -1,4 +1,24 @@
 /* Player detail page */
+.player-page,
+.coach-page {
+  width: 87.5%;
+  margin-inline: auto;
+}
+
+/* Season selector sits on the same row as the statistics header */
+.section-title-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.section-title-flex h2 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
 .player-identity, .coach-identity {
   display: flex;
   align-items: center;
@@ -35,10 +55,10 @@
   font-size: 0.8rem;
 }
 
-/* Transfer history */
+/* Transfer history (newest first, stacked vertically) */
 .transfer-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
   padding: 1rem;
   background: var(--bg-card);
@@ -103,13 +123,16 @@
   flex-shrink: 0;
 }
 
+@media (max-width: 860px) {
+  .player-page,
+  .coach-page {
+    width: 100%;
+  }
+}
+
 @media (max-width: 560px) {
   .player-avatar {
     width: 42px;
     height: 42px;
-  }
-
-  .transfer-list {
-    grid-template-columns: 1fr;
   }
 }

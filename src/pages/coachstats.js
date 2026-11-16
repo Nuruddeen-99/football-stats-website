@@ -170,7 +170,7 @@ function CoachStats() {
   );
 
   return (
-    <div>
+    <div className="coach-page">
       <div className="page-header-row">
         <div className="player-identity">
           <img

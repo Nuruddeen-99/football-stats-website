@@ -80,6 +80,18 @@ input, select {
   padding-block: 1.5rem 3rem;
 }
 
+/* Team pages use 87.5% of the shared container width. */
+.team-page {
+  width: 87.5%;
+  margin-inline: auto;
+}
+
+@media (max-width: 860px) {
+  .team-page {
+    width: 100%;
+  }
+}
+
 .page-title {
   text-align: center;
   font-size: 1.5rem;
@@ -111,6 +123,7 @@ input, select {
 /* Page Subheaders & Control Rows */
 .page-header-row {
   display: flex;
+  margin: 0 auto;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
@@ -410,7 +423,7 @@ input, select {
 }
 
 a.table-link {
-  display: block;
+  display: flex;
   color: inherit;
   transition: color 0.15s ease;
 }
@@ -779,6 +792,65 @@ a.table-link:hover {
   min-width: 0;
 }
 
+/* Let the text column shrink inside the flex row so long competition
+   names truncate with an ellipsis instead of spilling out of the card. */
+.trophy-card-title {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+
+/* Stylish hover tooltip with the full name, shown only when truncated. */
+.trophy-card-title[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 9px);
+  z-index: 40;
+  width: max-content;
+  max-width: min(280px, 70vw);
+  padding: 0.45rem 0.6rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: #111c2e;
+  color: var(--text-main);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.trophy-card-title[data-tooltip]::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  bottom: calc(100% + 3px);
+  z-index: 41;
+  border: 6px solid transparent;
+  border-top-color: rgba(16, 185, 129, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s ease;
+}
+
+.trophy-card-title[data-tooltip]:hover::after,
+.trophy-card-title[data-tooltip]:focus-within::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.trophy-card-title[data-tooltip]:hover::before,
+.trophy-card-title[data-tooltip]:focus-within::before {
+  opacity: 1;
+}
+
 .trophy-card-head img {
   width: 28px;
   height: 20px;
@@ -789,6 +861,7 @@ a.table-link:hover {
 .trophy-card-head h3 {
   font-size: 0.9rem;
   font-weight: 600;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

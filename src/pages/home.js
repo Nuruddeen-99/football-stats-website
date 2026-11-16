@@ -7,6 +7,94 @@ const NEWS_API_KEY = process.env.REACT_APP_NEWS_API_KEY;
 const PAGE_SIZE = 12;
 const FALLBACK_IMAGE = "/logos/defaultimg.png";
 
+// The default feed is limited to the top of the European game: major leagues,
+// European competitions and the biggest clubs. Anything that only mentions
+// "soccer" in passing (high-school finals, college round-ups, food blogs…) no
+// longer makes the cut.
+const TOP_FOOTBALL_QUERY = [
+  '("premier league" OR "la liga" OR "serie a" OR bundesliga OR "ligue 1"',
+  'OR "champions league" OR "europa league" OR "conference league"',
+  'OR "nations league"',
+  'OR ("world cup" AND (football OR soccer OR fifa))',
+  'OR "real madrid" OR barcelona OR "manchester united" OR "manchester city"',
+  'OR liverpool OR arsenal OR chelsea OR "bayern munich" OR "paris saint-germain"',
+  'OR juventus OR "ac milan" OR "inter milan" OR napoli OR "atletico madrid")',
+  'NOT rugby NOT NFL NOT "American football"',
+].join(" ");
+
+// Trusted football desks. Keeps the feed to proper football coverage instead of
+// local newspapers and content farms.
+const TOP_FOOTBALL_DOMAINS = [
+  "bbc.co.uk",
+  "bbc.com",
+  "skysports.com",
+  "espn.com",
+  "espn.co.uk",
+  "goal.com",
+  "theguardian.com",
+  "telegraph.co.uk",
+  "independent.co.uk",
+  "dailymail.co.uk",
+  "mirror.co.uk",
+  "standard.co.uk",
+  "theathletic.com",
+  "reuters.com",
+  "apnews.com",
+  "eurosport.com",
+  "talksport.com",
+  "football-italia.net",
+  "marca.com",
+  "as.com",
+  "gazzetta.it",
+  "lequipe.fr",
+  "kicker.de",
+  "sport1.de",
+  "record.pt",
+  "abola.pt",
+  "ojogo.pt",
+  "sport.es",
+  "mundodeportivo.com",
+  "fourfourtwo.com",
+  "90min.com",
+].join(",");
+
+// Safety net for the odd non-football story that slips through the query.
+const NON_FOOTBALL_CONTENT =
+  /\b(?:high school|h\.s\.|ncaa|college|athlete of the week|volleyball|basketball|baseball|softball|little league|rugby|all blacks|cricket|wicket|the ashes|six nations|ice hockey|nhl|nba|nfl|tennis|wimbledon|golf|pga|formula one|motogp|darts|snooker)\b/i;
+
+function normalizeTitle(title) {
+  return String(title || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function prepareArticles(articles, { topOnly = false } = {}) {
+  const seenUrls = new Set();
+  const seenTitles = new Set();
+
+  return (articles || []).filter((article) => {
+    if (!article?.title || !article?.url) return false;
+
+    // The same BBC story arrives from both bbc.co.uk and bbc.com.
+    const urlKey = article.url.split("?")[0].toLowerCase();
+    const titleKey = normalizeTitle(article.title);
+
+    if (seenUrls.has(urlKey) || seenTitles.has(titleKey)) return false;
+
+    if (
+      topOnly &&
+      NON_FOOTBALL_CONTENT.test(`${article.title} ${article.description || ""}`)
+    ) {
+      return false;
+    }
+
+    seenUrls.add(urlKey);
+    seenTitles.add(titleKey);
+    return true;
+  });
+}
+
 function formatPublished(dateString) {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return "";
@@ -51,17 +139,24 @@ function Home() {
       return;
     }
 
-    const q = query
-      ? `"${query}" AND soccer NOT rugby NOT "American football" NOT NFL`
-      : `soccer NOT rugby NOT "American football" NOT NFL`;
+    // Searches use the exact phrase and are matched only against the title and
+    // description. Combined with relevance sorting, this keeps results about
+    // the searched club/player instead of articles that merely mention it in
+    // passing. The default feed keeps the broader "soccer" query, newest first.
+    const phrase = query.replace(/"/g, "").trim();
 
     const params = new URLSearchParams({
-      q,
+      q: phrase
+        ? `"${phrase}" NOT rugby NOT NFL NOT "American football"`
+        : TOP_FOOTBALL_QUERY,
       language: "en",
-      sortBy: "publishedAt",
-      pageSize: "48",
+      sortBy: phrase ? "relevancy" : "publishedAt",
+      pageSize: phrase ? "48" : "100",
       apiKey: NEWS_API_KEY,
+      searchIn: "title,description",
     });
+
+    if (!phrase) params.set("domains", TOP_FOOTBALL_DOMAINS);
 
     setLoading(true);
     setError(null);
@@ -77,9 +172,7 @@ function Home() {
         throw new Error(data.message || "Unable to load news right now.");
       }
 
-      const list = (data.articles || []).filter(
-        (article) => article?.title && article?.url
-      );
+      const list = prepareArticles(data.articles, { topOnly: !phrase });
       setArticles(list);
     } catch (err) {
       if (requestRef.current !== requestId) return;

@@ -1,5 +1,66 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Loader from "./Loader";
+
+function TrophyCard({ trophy }) {
+  const titleRef = useRef(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useEffect(() => {
+    const el = titleRef.current;
+    if (!el) return undefined;
+
+    const measure = () => setIsTruncated(el.scrollWidth > el.clientWidth + 1);
+
+    measure();
+
+    const raf = window.requestAnimationFrame(measure);
+    window.addEventListener("resize", measure);
+
+    let observer;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(measure);
+      observer.observe(el);
+    }
+
+    // Custom fonts can change the rendered width after mount.
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(measure).catch(() => {});
+    }
+
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.removeEventListener("resize", measure);
+      observer?.disconnect();
+    };
+  }, [trophy.league]);
+
+  return (
+    <article className="trophy-card">
+      <div className="trophy-card-head">
+        {trophy.flagUrl && (
+          <img src={trophy.flagUrl} alt="" loading="lazy" />
+        )}
+        <div
+          className="trophy-card-title"
+          {...(isTruncated ? { "data-tooltip": trophy.league } : {})}
+        >
+          <h3 ref={titleRef}>{trophy.league}</h3>
+          <p>
+            {trophy.country || "International"} · {trophy.seasons.length}{" "}
+            {trophy.seasons.length === 1 ? "title" : "titles"}
+          </p>
+        </div>
+      </div>
+      <div className="chips">
+        {trophy.seasons.map((season, index) => (
+          <span className="chip" key={`${season}-${index}`}>
+            {season}
+          </span>
+        ))}
+      </div>
+    </article>
+  );
+}
 
 function TrophyList({ trophies = [], loading, error }) {
   const grouped = useMemo(() => {
@@ -61,27 +122,7 @@ function TrophyList({ trophies = [], loading, error }) {
   return (
     <div className="trophy-grid">
       {grouped.map((trophy) => (
-        <article className="trophy-card" key={trophy.league}>
-          <div className="trophy-card-head">
-            {trophy.flagUrl && (
-              <img src={trophy.flagUrl} alt="" loading="lazy" />
-            )}
-            <div>
-              <h3>{trophy.league}</h3>
-              <p>
-                {trophy.country || "International"} · {trophy.seasons.length}{" "}
-                {trophy.seasons.length === 1 ? "title" : "titles"}
-              </p>
-            </div>
-          </div>
-          <div className="chips">
-            {trophy.seasons.map((season, index) => (
-              <span className="chip" key={`${season}-${index}`}>
-                {season}
-              </span>
-            ))}
-          </div>
-        </article>
+        <TrophyCard trophy={trophy} key={trophy.league} />
       ))}
     </div>
   );

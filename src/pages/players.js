@@ -184,7 +184,6 @@ function Players() {
                         </span>
                       )}
                       {player.age && <span>Age {player.age}</span>}
-                      {player.height && <span>{player.height}</span>}
                     </div>
                   </div>
                   <i

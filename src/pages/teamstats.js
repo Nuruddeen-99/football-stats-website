@@ -19,25 +19,30 @@ function sumCardTotals(cards) {
 
 function FormBadges({ form }) {
   if (!form) {
-    return <span style={{ color: "var(--text-muted)", fontSize: "0.78rem" }}>No recent form</span>;
+    return (
+      <div className="form-badges">
+        <span className="form-badges-label">Form:</span>
+        <span style={{ color: "var(--text-muted)", fontSize: "0.78rem" }}>Not available</span>
+      </div>
+    );
   }
 
-  // The API returns the full season's form (up to 38 matches). Showing all of
-  // them overflows the banner, so keep the five most recent results.
-  const recentForm = form.slice(-5);
-
+  // The API returns the full season's form; list every result on one line.
   return (
-    <div className="form-badges" aria-label={`Recent form: ${recentForm.split("").join(" ")}`}>
-      {recentForm.split("").map((result, index) => (
-        <span
-          key={`${result}-${index}`}
-          className={`form-badge ${
-            result === "W" ? "badge-win" : result === "D" ? "badge-draw" : "badge-loss"
-          }`}
-        >
-          {result}
-        </span>
-      ))}
+    <div className="form-badges" aria-label={`Form: ${form.split("").join(" ")}`}>
+      <span className="form-badges-label">League Form:</span>
+      <div className="form-badges-track">
+        {form.split("").map((result, index) => (
+          <span
+            key={`${result}-${index}`}
+            className={`form-badge ${
+              result === "W" ? "badge-win" : result === "D" ? "badge-draw" : "badge-loss"
+            }`}
+          >
+            {result}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
@@ -137,9 +142,6 @@ function Teamstats() {
           {team?.logo && <img src={team.logo} alt="" className="league-identity-logo" />}
           <div>
             <h1>{team?.name || "Team"}</h1>
-            <p>
-              {league?.name || "League"} · Season {selectedSeason}
-            </p>
           </div>
         </div>
 
@@ -147,7 +149,7 @@ function Teamstats() {
           <SeasonSelect value={selectedSeason} onChange={handleSeasonChange} />
           <Link to={`/team-info/${teamId}`} className="btn-secondary">
             <i className="fa-solid fa-circle-info" aria-hidden="true" />
-            Team info
+            &nbsp;&nbsp;Team info
           </Link>
         </div>
       </div>
@@ -227,27 +229,27 @@ function Teamstats() {
               </tr>
               <tr>
                 <td>Penalties scored</td>
-                <td className="num" colSpan="3">
-                  {dash(penalty?.scored?.total)}
-                </td>
+                <td className="num" />
+                <td className="num" />
+                <td className="num">{dash(penalty?.scored?.total)}</td>
               </tr>
               <tr>
                 <td>Penalties missed</td>
-                <td className="num" colSpan="3">
-                  {dash(penalty?.missed?.total)}
-                </td>
+                <td className="num" />
+                <td className="num" />
+                <td className="num">{dash(penalty?.missed?.total)}</td>
               </tr>
               <tr>
                 <td>Yellow cards</td>
-                <td className="num" colSpan="3">
-                  {sumCardTotals(cards?.yellow)}
-                </td>
+                <td className="num" />
+                <td className="num" />
+                <td className="num">{sumCardTotals(cards?.yellow)}</td>
               </tr>
               <tr>
                 <td>Red cards</td>
-                <td className="num" colSpan="3">
-                  {sumCardTotals(cards?.red)}
-                </td>
+                <td className="num" />
+                <td className="num" />
+                <td className="num">{sumCardTotals(cards?.red)}</td>
               </tr>
             </tbody>
           </table>

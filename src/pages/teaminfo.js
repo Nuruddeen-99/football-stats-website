@@ -6,7 +6,7 @@ import { getFlagForCountry } from "../utils/flags";
 import { readCache, writeCache } from "../utils/cache";
 import "../css/teaminfo.css";
 
-const POSITION_ORDER = ["Goalkeeper", "Defender", "Midfielder", "Attacker"];
+const POSITION_ORDER = ["Attacker", "Midfielder", "Defender", "Goalkeeper"];
 
 const dash = (value) =>
   value === null || value === undefined || value === "" ? "–" : value;
@@ -138,7 +138,17 @@ function TeamInfo() {
         </div>
       </div>
 
-      <div className="info-grid" style={{ marginBottom: "1.5rem" }}>
+      {team.venue?.image && (
+        <figure className="stadium-card">
+          <img
+            src={team.venue.image}
+            alt={`${team.venue.name || "Stadium"} exterior`}
+            loading="lazy"
+          />
+        </figure>
+      )}
+
+      <div className="info-grid team-info-grid" style={{ marginBottom: "1.5rem" }}>
         <div className="info-card">
           <span className="info-title">Country</span>
           <span className="info-value">
@@ -169,16 +179,6 @@ function TeamInfo() {
           <span className="info-value">{dash(team.venue?.address)}</span>
         </div>
       </div>
-
-      {team.venue?.image && (
-        <figure className="stadium-card">
-          <img
-            src={team.venue.image}
-            alt={`${team.venue.name || "Stadium"} exterior`}
-            loading="lazy"
-          />
-        </figure>
-      )}
 
       <h2 className="section-title" style={{ marginTop: "1.5rem" }}>
         Coach

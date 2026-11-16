@@ -47,11 +47,10 @@
 }
 
 .standings-content {
-  min-width: 0;
+  min-width: 0; 
 }
 
 /* api-sports widgets */
-#wg-api-football-games,
 #wg-api-football-standings {
   width: 100%;
 }

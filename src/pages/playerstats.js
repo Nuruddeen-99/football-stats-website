@@ -23,6 +23,60 @@ function formatTransferDate(dateString) {
   });
 }
 
+const isMissingValue = (value) =>
+  value === null ||
+  value === undefined ||
+  String(value).trim() === "" ||
+  String(value).trim().toUpperCase() === "N/A";
+
+/**
+ * API-Football sometimes returns placeholder transfer rows: the type is "N/A"
+ * or a club has no id/logo/name. Drop those, collapse duplicate moves, and
+ * return the list newest-first.
+ */
+function sanitizeTransfers(transfers) {
+  const sorted = (Array.isArray(transfers) ? [...transfers] : [])
+    .filter((transfer) => {
+      if (String(transfer?.type ?? "").trim().toUpperCase() === "N/A") {
+        return false;
+      }
+
+      if (isMissingValue(transfer?.date)) return false;
+      if (Number.isNaN(new Date(transfer.date).getTime())) return false;
+
+      const out = transfer?.teams?.out;
+      const incoming = transfer?.teams?.in;
+
+      return (
+        out &&
+        incoming &&
+        !isMissingValue(out.id) &&
+        !isMissingValue(incoming.id) &&
+        !isMissingValue(out.logo) &&
+        !isMissingValue(incoming.logo) &&
+        !isMissingValue(out.name) &&
+        !isMissingValue(incoming.name)
+      );
+    })
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  // The API can list the same move twice a few days apart (different type
+  // labels). Keep the newest row for a club pair within a short window.
+  const maxDuplicateWindowMs = 7 * 24 * 60 * 60 * 1000;
+
+  return sorted.filter((transfer, index) => {
+    const time = new Date(transfer.date).getTime();
+    const outId = String(transfer.teams?.out?.id ?? "");
+    const inId = String(transfer.teams?.in?.id ?? "");
+
+    return !sorted.slice(0, index).some((newer) => {
+      if (String(newer.teams?.out?.id ?? "") !== outId) return false;
+      if (String(newer.teams?.in?.id ?? "") !== inId) return false;
+      return Math.abs(new Date(newer.date).getTime() - time) <= maxDuplicateWindowMs;
+    });
+  });
+}
+
 function PlayerStats() {
   const { playerId, newSeason } = useParams();
   const navigate = useNavigate();
@@ -148,8 +202,9 @@ function PlayerStats() {
     const cached = readCache(cacheKey);
 
     if (cached) {
-      setTransfers(cached.transfers || []);
-      setCurrentTeam(cached.currentTeam || null);
+      const cachedTransfers = sanitizeTransfers(cached.transfers);
+      setTransfers(cachedTransfers);
+      setCurrentTeam(cachedTransfers[0]?.teams?.in || null);
       setTransfersError(null);
       setLoadingTransfers(false);
       return undefined;
@@ -173,9 +228,7 @@ function PlayerStats() {
           ? response[0].transfers
           : [];
 
-        const sorted = [...allTransfers].sort(
-          (a, b) => new Date(b.date) - new Date(a.date)
-        );
+        const sorted = sanitizeTransfers(allTransfers);
 
         const latestTeam = sorted[0]?.teams?.in || null;
 
@@ -349,7 +402,7 @@ function PlayerStats() {
     : [];
 
   return (
-    <div>
+    <div className="player-page">
       <div className="page-header-row">
         <div className="player-identity">
           <img
@@ -369,10 +422,6 @@ function PlayerStats() {
               {player.nationality ? ` · ${player.nationality}` : ""}
             </p>
           </div>
-        </div>
-
-        <div className="team-actions">
-          <SeasonSelect value={selectedSeason} onChange={handleSeasonChange} />
         </div>
       </div>
 
@@ -418,9 +467,10 @@ function PlayerStats() {
         </div>
       </div>
 
-      <h2 className="section-title" style={{ marginTop: "1.5rem" }}>
-        Season {selectedSeason} statistics
-      </h2>
+      <div className="section-title section-title-flex" style={{ marginTop: "1.5rem" }}>
+        <h2>Season {selectedSeason} statistics</h2>
+        <SeasonSelect value={selectedSeason} onChange={handleSeasonChange} />
+      </div>
 
       {loadingStats ? (
         <div className="section-body">
